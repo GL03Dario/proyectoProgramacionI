@@ -2,9 +2,9 @@
 # Sistema de Planilla Hospitalaria
 
 # Integrantes:
-Darío González López 208880524
-Adrián González Robles 402720521
-Ian García López 208850760
+* Darío González López 208880524
+* Adrián González Robles 402720521
+* Ian García López 208850760
 
 
 
