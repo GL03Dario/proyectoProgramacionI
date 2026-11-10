@@ -56,7 +56,6 @@ proyecto/
 	└── EntradaConsola.h / .cpp
 ```
 
-> Si en su copia del proyecto los `.h` y `.cpp` están en carpetas separadas (por ejemplo `include/` y `src/`), basta con indicar la carpeta que \*\*contiene\*\* las subcarpetas `modelo/`, `controladores/`, etc. mediante la opción `-I`.
 
 ## 
 
