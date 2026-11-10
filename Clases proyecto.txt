@@ -1,0 +1,488 @@
+Empleado.h
+#ifndef EMPLEADO_H
+#define EMPLEADO_H
+
+#include <string>
+
+class Empleado {
+private:
+    std::string identificacion;
+    std::string nombre;
+    double salarioBase;
+    double horasExtra;
+    double valorHoraExtra;
+    int turnosNocturnos;
+    double bonificacionTurnoNocturno;
+    int guardias;
+    double bonificacionGuardia;
+    double tasaDeduccionLegal;
+
+protected:
+    Empleado(const std::string& identificacion,
+             const std::string& nombre,
+             double salarioBase,
+             double horasExtra,
+             double valorHoraExtra,
+             int turnosNocturnos,
+             double bonificacionTurnoNocturno,
+             int guardias,
+             double bonificacionGuardia,
+             double tasaDeduccionLegal);
+
+    static void validarMonto(
+        double valor, const std::string& campo);
+
+    static void validarCantidad(
+        int valor, const std::string& campo);
+
+    double calcularPagoHorasExtra() const;
+    double calcularBonificacionNocturna() const;
+    double calcularBonificacionGuardias() const;
+
+public:
+    virtual ~Empleado();
+
+    virtual std::string obtenerTipo() const = 0;
+
+    virtual double calcularBonificacionPuesto() const = 0;
+
+    double calcularSalarioBruto() const;
+    double calcularDeduccionLegal() const;
+    double calcularSalarioNeto() const;
+
+    const std::string& getIdentificacion() const;
+    const std::string& getNombre() const;
+
+    double getSalarioBase() const;
+    double getHorasExtra() const;
+    double getValorHoraExtra() const;
+
+    int getTurnosNocturnos() const;
+    int getGuardias() const;
+
+    double getTasaDeduccionLegal() const;
+};
+
+#endif
+
+Empleado.cpp
+#include "Empleado.h"
+#include <stdexcept>
+
+Empleado::Empleado(
+    const std::string& identificacion,
+    const std::string& nombre,
+    double salarioBase,
+    double horasExtra,
+    double valorHoraExtra,
+    int turnosNocturnos,
+    double bonificacionTurnoNocturno,
+    int guardias,
+    double bonificacionGuardia,
+    double tasaDeduccionLegal)
+
+    : identificacion(identificacion),
+      nombre(nombre),
+      salarioBase(salarioBase),
+      horasExtra(horasExtra),
+      valorHoraExtra(valorHoraExtra),
+      turnosNocturnos(turnosNocturnos),
+      bonificacionTurnoNocturno(bonificacionTurnoNocturno),
+      guardias(guardias),
+      bonificacionGuardia(bonificacionGuardia),
+      tasaDeduccionLegal(tasaDeduccionLegal) {
+
+    if (identificacion.empty())
+        throw std::invalid_argument(
+            "La identificacion no puede estar vacia.");
+
+    if (nombre.empty())
+        throw std::invalid_argument(
+            "El nombre no puede estar vacio.");
+
+    validarMonto(salarioBase, "salario base");
+    validarMonto(horasExtra, "horas extra");
+    validarMonto(valorHoraExtra, "valor de hora extra");
+
+    validarMonto(
+        bonificacionTurnoNocturno,
+        "bonificacion nocturna");
+
+    validarMonto(
+        bonificacionGuardia,
+        "bonificacion por guardia");
+
+    validarCantidad(turnosNocturnos, "turnos nocturnos");
+    validarCantidad(guardias, "guardias");
+
+    if (tasaDeduccionLegal < 0.0 ||
+        tasaDeduccionLegal > 1.0) {
+
+        throw std::invalid_argument(
+            "La tasa de deduccion debe estar entre 0 y 1.");
+    }
+}
+
+Empleado::~Empleado() = default;
+
+void Empleado::validarMonto(
+    double valor, const std::string& campo) {
+
+    if (valor < 0.0) {
+        throw std::invalid_argument(
+            "El valor de " + campo + " no puede ser negativo.");
+    }
+}
+
+void Empleado::validarCantidad(
+    int valor, const std::string& campo) {
+
+    if (valor < 0) {
+        throw std::invalid_argument(
+            "La cantidad de " + campo + " no puede ser negativa.");
+    }
+}
+
+double Empleado::calcularPagoHorasExtra() const {
+    return horasExtra * valorHoraExtra;
+}
+
+double Empleado::calcularBonificacionNocturna() const {
+    return turnosNocturnos * bonificacionTurnoNocturno;
+}
+
+double Empleado::calcularBonificacionGuardias() const {
+    return guardias * bonificacionGuardia;
+}
+
+double Empleado::calcularSalarioBruto() const {
+
+    return salarioBase
+         + calcularPagoHorasExtra()
+         + calcularBonificacionNocturna()
+         + calcularBonificacionGuardias()
+         + calcularBonificacionPuesto();
+}
+
+double Empleado::calcularDeduccionLegal() const {
+    return calcularSalarioBruto() * tasaDeduccionLegal;
+}
+
+double Empleado::calcularSalarioNeto() const {
+    return calcularSalarioBruto()
+         - calcularDeduccionLegal();
+}
+
+const std::string& Empleado::getIdentificacion() const {
+    return identificacion;
+}
+
+const std::string& Empleado::getNombre() const {
+    return nombre;
+}
+
+double Empleado::getSalarioBase() const {
+    return salarioBase;
+}
+
+double Empleado::getHorasExtra() const {
+    return horasExtra;
+}
+
+double Empleado::getValorHoraExtra() const {
+    return valorHoraExtra;
+}
+
+int Empleado::getTurnosNocturnos() const {
+    return turnosNocturnos;
+}
+
+int Empleado::getGuardias() const {
+    return guardias;
+}
+
+double Empleado::getTasaDeduccionLegal() const {
+    return tasaDeduccionLegal;
+}
+
+Medico.h
+#ifndef MEDICO_H
+#define MEDICO_H
+
+#include "Empleado.h"
+#include <string>
+
+class Medico : public Empleado {
+
+private:
+    std::string especialidad;
+    double bonificacionEspecialidad;
+
+public:
+    Medico(
+        const std::string& identificacion,
+        const std::string& nombre,
+        double salarioBase,
+        double horasExtra,
+        double valorHoraExtra,
+        int turnosNocturnos,
+        double bonificacionTurnoNocturno,
+        int guardias,
+        double bonificacionGuardia,
+        double tasaDeduccionLegal,
+        const std::string& especialidad,
+        double bonificacionEspecialidad
+    );
+
+    std::string obtenerTipo() const override;
+
+    double calcularBonificacionPuesto() const override;
+
+    const std::string& getEspecialidad() const;
+};
+
+#endif
+
+Medico.cpp
+#include "Medico.h"
+#include <stdexcept>
+
+Medico::Medico(
+    const std::string& identificacion,
+    const std::string& nombre,
+    double salarioBase,
+    double horasExtra,
+    double valorHoraExtra,
+    int turnosNocturnos,
+    double bonificacionTurnoNocturno,
+    int guardias,
+    double bonificacionGuardia,
+    double tasaDeduccionLegal,
+    const std::string& especialidad,
+    double bonificacionEspecialidad)
+
+    : Empleado(
+        identificacion,
+        nombre,
+        salarioBase,
+        horasExtra,
+        valorHoraExtra,
+        turnosNocturnos,
+        bonificacionTurnoNocturno,
+        guardias,
+        bonificacionGuardia,
+        tasaDeduccionLegal
+      ),
+
+      especialidad(especialidad),
+      bonificacionEspecialidad(bonificacionEspecialidad) {
+
+    if (especialidad.empty()) {
+        throw std::invalid_argument(
+            "La especialidad no puede estar vacia.");
+    }
+
+    validarMonto(
+        bonificacionEspecialidad,
+        "bonificacion de especialidad");
+}
+
+std::string Medico::obtenerTipo() const {
+    return "Medico";
+}
+
+double Medico::calcularBonificacionPuesto() const {
+    return bonificacionEspecialidad;
+}
+
+const std::string& Medico::getEspecialidad() const {
+    return especialidad;
+}
+
+Enfermero.h
+#ifndef ENFERMERO_H
+#define ENFERMERO_H
+
+#include "Empleado.h"
+#include <string>
+
+class Enfermero : public Empleado {
+
+private:
+    std::string areaAsignada;
+    double bonificacionArea;
+
+public:
+    Enfermero(
+        const std::string& identificacion,
+        const std::string& nombre,
+        double salarioBase,
+        double horasExtra,
+        double valorHoraExtra,
+        int turnosNocturnos,
+        double bonificacionTurnoNocturno,
+        int guardias,
+        double bonificacionGuardia,
+        double tasaDeduccionLegal,
+        const std::string& areaAsignada,
+        double bonificacionArea
+    );
+
+    std::string obtenerTipo() const override;
+
+    double calcularBonificacionPuesto() const override;
+
+    const std::string& getAreaAsignada() const;
+};
+
+#endif
+
+Enfermero.cpp
+#include "Enfermero.h"
+#include <stdexcept>
+
+Enfermero::Enfermero(
+    const std::string& identificacion,
+    const std::string& nombre,
+    double salarioBase,
+    double horasExtra,
+    double valorHoraExtra,
+    int turnosNocturnos,
+    double bonificacionTurnoNocturno,
+    int guardias,
+    double bonificacionGuardia,
+    double tasaDeduccionLegal,
+    const std::string& areaAsignada,
+    double bonificacionArea)
+
+    : Empleado(
+        identificacion,
+        nombre,
+        salarioBase,
+        horasExtra,
+        valorHoraExtra,
+        turnosNocturnos,
+        bonificacionTurnoNocturno,
+        guardias,
+        bonificacionGuardia,
+        tasaDeduccionLegal
+      ),
+
+      areaAsignada(areaAsignada),
+      bonificacionArea(bonificacionArea) {
+
+    if (areaAsignada.empty()) {
+        throw std::invalid_argument(
+            "El area asignada no puede estar vacia.");
+    }
+
+    validarMonto(
+        bonificacionArea,
+        "bonificacion del area");
+}
+
+std::string Enfermero::obtenerTipo() const {
+    return "Enfermero";
+}
+
+double Enfermero::calcularBonificacionPuesto() const {
+    return bonificacionArea;
+}
+
+const std::string& Enfermero::getAreaAsignada() const {
+    return areaAsignada;
+}
+
+Administrativo.h
+#ifndef ADMINISTRATIVO_H
+#define ADMINISTRATIVO_H
+
+#include "Empleado.h"
+#include <string>
+
+class Administrativo : public Empleado {
+
+private:
+    std::string cargo;
+    double bonificacionCargo;
+
+public:
+    Administrativo(
+        const std::string& identificacion,
+        const std::string& nombre,
+        double salarioBase,
+        double horasExtra,
+        double valorHoraExtra,
+        int turnosNocturnos,
+        double bonificacionTurnoNocturno,
+        int guardias,
+        double bonificacionGuardia,
+        double tasaDeduccionLegal,
+        const std::string& cargo,
+        double bonificacionCargo
+    );
+
+    std::string obtenerTipo() const override;
+
+    double calcularBonificacionPuesto() const override;
+
+    const std::string& getCargo() const;
+};
+
+#endif
+
+Administrativo.cpp
+#include "Administrativo.h"
+#include <stdexcept>
+
+Administrativo::Administrativo(
+    const std::string& identificacion,
+    const std::string& nombre,
+    double salarioBase,
+    double horasExtra,
+    double valorHoraExtra,
+    int turnosNocturnos,
+    double bonificacionTurnoNocturno,
+    int guardias,
+    double bonificacionGuardia,
+    double tasaDeduccionLegal,
+    const std::string& cargo,
+    double bonificacionCargo)
+
+    : Empleado(
+        identificacion,
+        nombre,
+        salarioBase,
+        horasExtra,
+        valorHoraExtra,
+        turnosNocturnos,
+        bonificacionTurnoNocturno,
+        guardias,
+        bonificacionGuardia,
+        tasaDeduccionLegal
+      ),
+
+      cargo(cargo),
+      bonificacionCargo(bonificacionCargo) {
+
+    if (cargo.empty()) {
+        throw std::invalid_argument(
+            "El cargo no puede estar vacio.");
+    }
+
+    validarMonto(
+        bonificacionCargo,
+        "bonificacion del cargo");
+}
+
+std::string Administrativo::obtenerTipo() const {
+    return "Administrativo";
+}
+
+double Administrativo::calcularBonificacionPuesto() const {
+    return bonificacionCargo;
+}
+
+const std::string& Administrativo::getCargo() const {
+    return cargo;
+}
