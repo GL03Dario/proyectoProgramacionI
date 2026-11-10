@@ -1,0 +1,3760 @@
+colecciones/Nodo.h
+#ifndef NODO_H
+#define NODO_H
+
+
+template <typename T>
+class Nodo {
+private:
+	T* dato;
+	Nodo<T>* siguiente;
+
+public:
+	explicit Nodo(T* dato) : dato(dato), siguiente(nullptr) {}
+
+	Nodo(const Nodo&) = delete;
+	Nodo& operator=(const Nodo&) = delete;
+
+	T* getDato() const { return dato; }
+	Nodo<T>* getSiguiente() const { return siguiente; }
+	void setSiguiente(Nodo<T>* nuevoSiguiente) { siguiente = nuevoSiguiente; }
+};
+
+#endif
+
+colecciones/Lista.h
+#ifndef LISTA_H
+#define LISTA_H
+
+#include "colecciones/Nodo.h"
+#include <stdexcept>
+#include <string>
+
+
+template <typename T>
+class Lista {
+private:
+	Nodo<T>* cabeza;
+	Nodo<T>* cola;
+	int tamano;
+
+public:
+	Lista() : cabeza(nullptr), cola(nullptr), tamano(0) {}
+
+	~Lista() { limpiar(); }
+
+	Lista(const Lista&) = delete;
+	Lista& operator=(const Lista&) = delete;
+
+	
+	void agregar(T* elemento) {
+		if (elemento == nullptr) {
+			throw std::invalid_argument(
+				"No se puede agregar un elemento nulo a la lista.");
+		}
+
+		Nodo<T>* nuevo = new Nodo<T>(elemento);
+
+		if (cola == nullptr) {
+			cabeza = nuevo;
+		} else {
+			cola->setSiguiente(nuevo);
+		}
+
+		cola = nuevo;
+		++tamano;
+	}
+
+	
+	bool eliminar(const T* elemento) {
+		Nodo<T>* anterior = nullptr;
+		Nodo<T>* actual = cabeza;
+
+		while (actual != nullptr) {
+			if (actual->getDato() == elemento) {
+				Nodo<T>* siguiente = actual->getSiguiente();
+
+				if (anterior == nullptr) {
+					cabeza = siguiente;
+				} else {
+					anterior->setSiguiente(siguiente);
+				}
+
+				if (actual == cola) {
+					cola = anterior;
+				}
+
+				delete actual->getDato();
+				delete actual;
+				--tamano;
+				return true;
+			}
+
+			anterior = actual;
+			actual = actual->getSiguiente();
+		}
+
+		return false;
+	}
+
+	T* obtener(int indice) const {
+		if (indice < 0 || indice >= tamano) {
+			throw std::out_of_range(
+				"Indice fuera de rango: " + std::to_string(indice));
+		}
+
+		Nodo<T>* actual = cabeza;
+
+		for (int i = 0; i < indice; ++i) {
+			actual = actual->getSiguiente();
+		}
+
+		return actual->getDato();
+	}
+
+	
+	template <typename Predicado>
+	T* buscar(Predicado predicado) const {
+		for (Nodo<T>* actual = cabeza;
+			 actual != nullptr;
+			 actual = actual->getSiguiente()) {
+
+			if (predicado(actual->getDato())) {
+				return actual->getDato();
+			}
+		}
+
+		return nullptr;
+	}
+
+	
+	Nodo<T>* primero() const { return cabeza; }
+
+	int getTamano() const { return tamano; }
+	bool estaVacia() const { return tamano == 0; }
+
+	void limpiar() {
+		Nodo<T>* actual = cabeza;
+
+		while (actual != nullptr) {
+			Nodo<T>* siguiente = actual->getSiguiente();
+			delete actual->getDato();
+			delete actual;
+			actual = siguiente;
+		}
+
+		cabeza = nullptr;
+		cola = nullptr;
+		tamano = 0;
+	}
+};
+
+#endif
+
+modelo/Empleado.h
+#ifndef EMPLEADO_H
+#define EMPLEADO_H
+
+#include <string>
+
+class Empleado {
+private:
+	std::string identificacion;
+	std::string nombre;
+	double salarioBase;
+	double horasExtra;
+	double valorHoraExtra;
+	int turnosNocturnos;
+	double bonificacionTurnoNocturno;
+	int guardias;
+	double bonificacionGuardia;
+	double tasaDeduccionLegal;
+
+	
+	std::string idDepartamento;
+	std::string codigoPuesto;
+
+protected:
+	Empleado(const std::string& identificacion,
+			 const std::string& nombre,
+			 double salarioBase,
+			 double horasExtra,
+			 double valorHoraExtra,
+			 int turnosNocturnos,
+			 double bonificacionTurnoNocturno,
+			 int guardias,
+			 double bonificacionGuardia,
+			 double tasaDeduccionLegal);
+
+	static void validarMonto(
+		double valor, const std::string& campo);
+
+	static void validarCantidad(
+		int valor, const std::string& campo);
+
+public:
+	
+	Empleado(const Empleado&) = delete;
+	Empleado& operator=(const Empleado&) = delete;
+
+	virtual ~Empleado();
+
+	virtual std::string obtenerTipo() const = 0;
+
+	
+	virtual std::string obtenerDetallePuesto() const = 0;
+	virtual void setDetallePuesto(const std::string& valor) = 0;
+
+	virtual double calcularBonificacionPuesto() const = 0;
+	virtual void setBonificacionPuesto(double valor) = 0;
+
+	
+	double calcularPagoHorasExtra() const;
+	double calcularBonificacionNocturna() const;
+	double calcularBonificacionGuardias() const;
+
+	double calcularSalarioBruto() const;
+	double calcularDeduccionLegal() const;
+	double calcularSalarioNeto() const;
+
+	const std::string& getIdentificacion() const;
+	const std::string& getNombre() const;
+
+	double getSalarioBase() const;
+	double getHorasExtra() const;
+	double getValorHoraExtra() const;
+
+	int getTurnosNocturnos() const;
+	double getBonificacionTurnoNocturno() const;
+
+	int getGuardias() const;
+	double getBonificacionGuardia() const;
+
+	double getTasaDeduccionLegal() const;
+
+	const std::string& getIdDepartamento() const;
+	const std::string& getCodigoPuesto() const;
+
+	
+	void setNombre(const std::string& valor);
+	void setSalarioBase(double valor);
+	void setHorasExtra(double valor);
+	void setValorHoraExtra(double valor);
+	void setTurnosNocturnos(int valor);
+	void setBonificacionTurnoNocturno(double valor);
+	void setGuardias(int valor);
+	void setBonificacionGuardia(double valor);
+	void setTasaDeduccionLegal(double valor);
+
+	void setIdDepartamento(const std::string& valor);
+	void setCodigoPuesto(const std::string& valor);
+};
+
+#endif
+
+modelo/Empleado.cpp
+#include "modelo/Empleado.h"
+#include <stdexcept>
+
+Empleado::Empleado(
+	const std::string& identificacion,
+	const std::string& nombre,
+	double salarioBase,
+	double horasExtra,
+	double valorHoraExtra,
+	int turnosNocturnos,
+	double bonificacionTurnoNocturno,
+	int guardias,
+	double bonificacionGuardia,
+	double tasaDeduccionLegal)
+
+	: identificacion(identificacion),
+	  nombre(nombre),
+	  salarioBase(salarioBase),
+	  horasExtra(horasExtra),
+	  valorHoraExtra(valorHoraExtra),
+	  turnosNocturnos(turnosNocturnos),
+	  bonificacionTurnoNocturno(bonificacionTurnoNocturno),
+	  guardias(guardias),
+	  bonificacionGuardia(bonificacionGuardia),
+	  tasaDeduccionLegal(tasaDeduccionLegal),
+	  idDepartamento(),
+	  codigoPuesto() {
+
+	if (identificacion.empty())
+		throw std::invalid_argument(
+			"La identificacion no puede estar vacia.");
+
+	if (nombre.empty())
+		throw std::invalid_argument(
+			"El nombre no puede estar vacio.");
+
+	validarMonto(salarioBase, "salario base");
+	validarMonto(horasExtra, "horas extra");
+	validarMonto(valorHoraExtra, "valor de hora extra");
+
+	validarMonto(
+		bonificacionTurnoNocturno,
+		"bonificacion nocturna");
+
+	validarMonto(
+		bonificacionGuardia,
+		"bonificacion por guardia");
+
+	validarCantidad(turnosNocturnos, "turnos nocturnos");
+	validarCantidad(guardias, "guardias");
+
+	if (tasaDeduccionLegal < 0.0 ||
+		tasaDeduccionLegal > 1.0) {
+
+		throw std::invalid_argument(
+			"La tasa de deduccion debe estar entre 0 y 1.");
+	}
+}
+
+Empleado::~Empleado() = default;
+
+void Empleado::validarMonto(
+	double valor, const std::string& campo) {
+
+	if (valor < 0.0) {
+		throw std::invalid_argument(
+			"El valor de " + campo + " no puede ser negativo.");
+	}
+}
+
+void Empleado::validarCantidad(
+	int valor, const std::string& campo) {
+
+	if (valor < 0) {
+		throw std::invalid_argument(
+			"La cantidad de " + campo + " no puede ser negativa.");
+	}
+}
+
+double Empleado::calcularPagoHorasExtra() const {
+	return horasExtra * valorHoraExtra;
+}
+
+double Empleado::calcularBonificacionNocturna() const {
+	return turnosNocturnos * bonificacionTurnoNocturno;
+}
+
+double Empleado::calcularBonificacionGuardias() const {
+	return guardias * bonificacionGuardia;
+}
+
+double Empleado::calcularSalarioBruto() const {
+
+	return salarioBase
+		 + calcularPagoHorasExtra()
+		 + calcularBonificacionNocturna()
+		 + calcularBonificacionGuardias()
+		 + calcularBonificacionPuesto();
+}
+
+double Empleado::calcularDeduccionLegal() const {
+	return calcularSalarioBruto() * tasaDeduccionLegal;
+}
+
+double Empleado::calcularSalarioNeto() const {
+	return calcularSalarioBruto()
+		 - calcularDeduccionLegal();
+}
+
+const std::string& Empleado::getIdentificacion() const {
+	return identificacion;
+}
+
+const std::string& Empleado::getNombre() const {
+	return nombre;
+}
+
+double Empleado::getSalarioBase() const {
+	return salarioBase;
+}
+
+double Empleado::getHorasExtra() const {
+	return horasExtra;
+}
+
+double Empleado::getValorHoraExtra() const {
+	return valorHoraExtra;
+}
+
+int Empleado::getTurnosNocturnos() const {
+	return turnosNocturnos;
+}
+
+double Empleado::getBonificacionTurnoNocturno() const {
+	return bonificacionTurnoNocturno;
+}
+
+int Empleado::getGuardias() const {
+	return guardias;
+}
+
+double Empleado::getBonificacionGuardia() const {
+	return bonificacionGuardia;
+}
+
+double Empleado::getTasaDeduccionLegal() const {
+	return tasaDeduccionLegal;
+}
+
+const std::string& Empleado::getIdDepartamento() const {
+	return idDepartamento;
+}
+
+const std::string& Empleado::getCodigoPuesto() const {
+	return codigoPuesto;
+}
+
+void Empleado::setNombre(const std::string& valor) {
+	if (valor.empty())
+		throw std::invalid_argument(
+			"El nombre no puede estar vacio.");
+
+	nombre = valor;
+}
+
+void Empleado::setSalarioBase(double valor) {
+	validarMonto(valor, "salario base");
+	salarioBase = valor;
+}
+
+void Empleado::setHorasExtra(double valor) {
+	validarMonto(valor, "horas extra");
+	horasExtra = valor;
+}
+
+void Empleado::setValorHoraExtra(double valor) {
+	validarMonto(valor, "valor de hora extra");
+	valorHoraExtra = valor;
+}
+
+void Empleado::setTurnosNocturnos(int valor) {
+	validarCantidad(valor, "turnos nocturnos");
+	turnosNocturnos = valor;
+}
+
+void Empleado::setBonificacionTurnoNocturno(double valor) {
+	validarMonto(valor, "bonificacion nocturna");
+	bonificacionTurnoNocturno = valor;
+}
+
+void Empleado::setGuardias(int valor) {
+	validarCantidad(valor, "guardias");
+	guardias = valor;
+}
+
+void Empleado::setBonificacionGuardia(double valor) {
+	validarMonto(valor, "bonificacion por guardia");
+	bonificacionGuardia = valor;
+}
+
+void Empleado::setTasaDeduccionLegal(double valor) {
+	if (valor < 0.0 || valor > 1.0)
+		throw std::invalid_argument(
+			"La tasa de deduccion debe estar entre 0 y 1.");
+
+	tasaDeduccionLegal = valor;
+}
+
+void Empleado::setIdDepartamento(const std::string& valor) {
+	idDepartamento = valor;
+}
+
+void Empleado::setCodigoPuesto(const std::string& valor) {
+	codigoPuesto = valor;
+}
+
+modelo/Medico.h
+#ifndef MEDICO_H
+#define MEDICO_H
+
+#include "modelo/Empleado.h"
+#include <string>
+
+class Medico : public Empleado {
+
+private:
+	std::string especialidad;
+	double bonificacionEspecialidad;
+
+public:
+	Medico(
+		const std::string& identificacion,
+		const std::string& nombre,
+		double salarioBase,
+		double horasExtra,
+		double valorHoraExtra,
+		int turnosNocturnos,
+		double bonificacionTurnoNocturno,
+		int guardias,
+		double bonificacionGuardia,
+		double tasaDeduccionLegal,
+		const std::string& especialidad,
+		double bonificacionEspecialidad
+	);
+
+	std::string obtenerTipo() const override;
+
+	std::string obtenerDetallePuesto() const override;
+	void setDetallePuesto(const std::string& valor) override;
+
+	double calcularBonificacionPuesto() const override;
+	void setBonificacionPuesto(double valor) override;
+
+	const std::string& getEspecialidad() const;
+	double getBonificacionEspecialidad() const;
+};
+
+#endif
+
+modelo/Medico.cpp
+#include "modelo/Medico.h"
+#include <stdexcept>
+
+Medico::Medico(
+	const std::string& identificacion,
+	const std::string& nombre,
+	double salarioBase,
+	double horasExtra,
+	double valorHoraExtra,
+	int turnosNocturnos,
+	double bonificacionTurnoNocturno,
+	int guardias,
+	double bonificacionGuardia,
+	double tasaDeduccionLegal,
+	const std::string& especialidad,
+	double bonificacionEspecialidad)
+
+	: Empleado(
+		identificacion,
+		nombre,
+		salarioBase,
+		horasExtra,
+		valorHoraExtra,
+		turnosNocturnos,
+		bonificacionTurnoNocturno,
+		guardias,
+		bonificacionGuardia,
+		tasaDeduccionLegal
+	  ),
+
+	  especialidad(especialidad),
+	  bonificacionEspecialidad(bonificacionEspecialidad) {
+
+	if (especialidad.empty()) {
+		throw std::invalid_argument(
+			"La especialidad no puede estar vacia.");
+	}
+
+	validarMonto(
+		bonificacionEspecialidad,
+		"bonificacion de especialidad");
+}
+
+std::string Medico::obtenerTipo() const {
+	return "Medico";
+}
+
+std::string Medico::obtenerDetallePuesto() const {
+	return especialidad;
+}
+
+void Medico::setDetallePuesto(const std::string& valor) {
+	if (valor.empty()) {
+		throw std::invalid_argument(
+			"La especialidad no puede estar vacia.");
+	}
+
+	especialidad = valor;
+}
+
+double Medico::calcularBonificacionPuesto() const {
+	return bonificacionEspecialidad;
+}
+
+void Medico::setBonificacionPuesto(double valor) {
+	validarMonto(valor, "bonificacion de especialidad");
+	bonificacionEspecialidad = valor;
+}
+
+const std::string& Medico::getEspecialidad() const {
+	return especialidad;
+}
+
+double Medico::getBonificacionEspecialidad() const {
+	return bonificacionEspecialidad;
+}
+
+modelo/Enfermero.h
+#ifndef ENFERMERO_H
+#define ENFERMERO_H
+
+#include "modelo/Empleado.h"
+#include <string>
+
+class Enfermero : public Empleado {
+
+private:
+	std::string areaAsignada;
+	double bonificacionArea;
+
+public:
+	Enfermero(
+		const std::string& identificacion,
+		const std::string& nombre,
+		double salarioBase,
+		double horasExtra,
+		double valorHoraExtra,
+		int turnosNocturnos,
+		double bonificacionTurnoNocturno,
+		int guardias,
+		double bonificacionGuardia,
+		double tasaDeduccionLegal,
+		const std::string& areaAsignada,
+		double bonificacionArea
+	);
+
+	std::string obtenerTipo() const override;
+
+	std::string obtenerDetallePuesto() const override;
+	void setDetallePuesto(const std::string& valor) override;
+
+	double calcularBonificacionPuesto() const override;
+	void setBonificacionPuesto(double valor) override;
+
+	const std::string& getAreaAsignada() const;
+	double getBonificacionArea() const;
+};
+
+#endif
+
+modelo/Enfermero.cpp
+#include "modelo/Enfermero.h"
+#include <stdexcept>
+
+Enfermero::Enfermero(
+	const std::string& identificacion,
+	const std::string& nombre,
+	double salarioBase,
+	double horasExtra,
+	double valorHoraExtra,
+	int turnosNocturnos,
+	double bonificacionTurnoNocturno,
+	int guardias,
+	double bonificacionGuardia,
+	double tasaDeduccionLegal,
+	const std::string& areaAsignada,
+	double bonificacionArea)
+
+	: Empleado(
+		identificacion,
+		nombre,
+		salarioBase,
+		horasExtra,
+		valorHoraExtra,
+		turnosNocturnos,
+		bonificacionTurnoNocturno,
+		guardias,
+		bonificacionGuardia,
+		tasaDeduccionLegal
+	  ),
+
+	  areaAsignada(areaAsignada),
+	  bonificacionArea(bonificacionArea) {
+
+	if (areaAsignada.empty()) {
+		throw std::invalid_argument(
+			"El area asignada no puede estar vacia.");
+	}
+
+	validarMonto(
+		bonificacionArea,
+		"bonificacion del area");
+}
+
+std::string Enfermero::obtenerTipo() const {
+	return "Enfermero";
+}
+
+std::string Enfermero::obtenerDetallePuesto() const {
+	return areaAsignada;
+}
+
+void Enfermero::setDetallePuesto(const std::string& valor) {
+	if (valor.empty()) {
+		throw std::invalid_argument(
+			"El area asignada no puede estar vacia.");
+	}
+
+	areaAsignada = valor;
+}
+
+double Enfermero::calcularBonificacionPuesto() const {
+	return bonificacionArea;
+}
+
+void Enfermero::setBonificacionPuesto(double valor) {
+	validarMonto(valor, "bonificacion del area");
+	bonificacionArea = valor;
+}
+
+const std::string& Enfermero::getAreaAsignada() const {
+	return areaAsignada;
+}
+
+double Enfermero::getBonificacionArea() const {
+	return bonificacionArea;
+}
+
+modelo/Administrativo.h
+#ifndef ADMINISTRATIVO_H
+#define ADMINISTRATIVO_H
+
+#include "modelo/Empleado.h"
+#include <string>
+
+class Administrativo : public Empleado {
+
+private:
+	std::string cargo;
+	double bonificacionCargo;
+
+public:
+	Administrativo(
+		const std::string& identificacion,
+		const std::string& nombre,
+		double salarioBase,
+		double horasExtra,
+		double valorHoraExtra,
+		int turnosNocturnos,
+		double bonificacionTurnoNocturno,
+		int guardias,
+		double bonificacionGuardia,
+		double tasaDeduccionLegal,
+		const std::string& cargo,
+		double bonificacionCargo
+	);
+
+	std::string obtenerTipo() const override;
+
+	std::string obtenerDetallePuesto() const override;
+	void setDetallePuesto(const std::string& valor) override;
+
+	double calcularBonificacionPuesto() const override;
+	void setBonificacionPuesto(double valor) override;
+
+	const std::string& getCargo() const;
+	double getBonificacionCargo() const;
+};
+
+#endif
+
+modelo/Administrativo.cpp
+#include "modelo/Administrativo.h"
+#include <stdexcept>
+
+Administrativo::Administrativo(
+	const std::string& identificacion,
+	const std::string& nombre,
+	double salarioBase,
+	double horasExtra,
+	double valorHoraExtra,
+	int turnosNocturnos,
+	double bonificacionTurnoNocturno,
+	int guardias,
+	double bonificacionGuardia,
+	double tasaDeduccionLegal,
+	const std::string& cargo,
+	double bonificacionCargo)
+
+	: Empleado(
+		identificacion,
+		nombre,
+		salarioBase,
+		horasExtra,
+		valorHoraExtra,
+		turnosNocturnos,
+		bonificacionTurnoNocturno,
+		guardias,
+		bonificacionGuardia,
+		tasaDeduccionLegal
+	  ),
+
+	  cargo(cargo),
+	  bonificacionCargo(bonificacionCargo) {
+
+	if (cargo.empty()) {
+		throw std::invalid_argument(
+			"El cargo no puede estar vacio.");
+	}
+
+	validarMonto(
+		bonificacionCargo,
+		"bonificacion del cargo");
+}
+
+std::string Administrativo::obtenerTipo() const {
+	return "Administrativo";
+}
+
+std::string Administrativo::obtenerDetallePuesto() const {
+	return cargo;
+}
+
+void Administrativo::setDetallePuesto(const std::string& valor) {
+	if (valor.empty()) {
+		throw std::invalid_argument(
+			"El cargo no puede estar vacio.");
+	}
+
+	cargo = valor;
+}
+
+double Administrativo::calcularBonificacionPuesto() const {
+	return bonificacionCargo;
+}
+
+void Administrativo::setBonificacionPuesto(double valor) {
+	validarMonto(valor, "bonificacion del cargo");
+	bonificacionCargo = valor;
+}
+
+const std::string& Administrativo::getCargo() const {
+	return cargo;
+}
+
+double Administrativo::getBonificacionCargo() const {
+	return bonificacionCargo;
+}
+
+modelo/Puesto.h
+#ifndef PUESTO_H
+#define PUESTO_H
+
+#include <string>
+
+
+class Puesto {
+private:
+	std::string codigo;
+	std::string nombre;
+
+public:
+	Puesto(const std::string& codigo, const std::string& nombre);
+
+	const std::string& getCodigo() const;
+	const std::string& getNombre() const;
+
+	void setNombre(const std::string& nuevoNombre);
+};
+
+#endif
+
+modelo/Puesto.cpp
+#include "modelo/Puesto.h"
+#include <stdexcept>
+
+Puesto::Puesto(const std::string& codigo, const std::string& nombre)
+	: codigo(codigo), nombre(nombre) {
+
+	if (codigo.empty()) {
+		throw std::invalid_argument(
+			"El codigo del puesto no puede estar vacio.");
+	}
+
+	if (nombre.empty()) {
+		throw std::invalid_argument(
+			"El nombre del puesto no puede estar vacio.");
+	}
+}
+
+const std::string& Puesto::getCodigo() const {
+	return codigo;
+}
+
+const std::string& Puesto::getNombre() const {
+	return nombre;
+}
+
+void Puesto::setNombre(const std::string& nuevoNombre) {
+	if (nuevoNombre.empty()) {
+		throw std::invalid_argument(
+			"El nombre del puesto no puede estar vacio.");
+	}
+
+	nombre = nuevoNombre;
+}
+
+modelo/Departamento.h
+#ifndef DEPARTAMENTO_H
+#define DEPARTAMENTO_H
+
+#include "colecciones/Lista.h"
+#include "modelo/Puesto.h"
+#include <string>
+
+class Departamento {
+private:
+	std::string codigo;
+	std::string nombre;
+	Lista<Puesto> puestos;
+
+public:
+	Departamento(const std::string& codigo, const std::string& nombre);
+
+	Departamento(const Departamento&) = delete;
+	Departamento& operator=(const Departamento&) = delete;
+
+	const std::string& getCodigo() const;
+	const std::string& getNombre() const;
+	void setNombre(const std::string& nuevoNombre);
+
+	void agregarPuesto(
+		const std::string& codigoPuesto,
+		const std::string& nombrePuesto);
+
+	bool eliminarPuesto(const std::string& codigoPuesto);
+
+	Puesto* buscarPuesto(const std::string& codigoPuesto) const;
+	bool existePuesto(const std::string& codigoPuesto) const;
+
+	const Lista<Puesto>& getPuestos() const;
+};
+
+#endif
+
+modelo/Departamento.cpp
+#include "modelo/Departamento.h"
+#include <stdexcept>
+
+Departamento::Departamento(
+	const std::string& codigo, const std::string& nombre)
+	: codigo(codigo), nombre(nombre) {
+
+	if (codigo.empty()) {
+		throw std::invalid_argument(
+			"El codigo del departamento no puede estar vacio.");
+	}
+
+	if (nombre.empty()) {
+		throw std::invalid_argument(
+			"El nombre del departamento no puede estar vacio.");
+	}
+}
+
+const std::string& Departamento::getCodigo() const {
+	return codigo;
+}
+
+const std::string& Departamento::getNombre() const {
+	return nombre;
+}
+
+void Departamento::setNombre(const std::string& nuevoNombre) {
+	if (nuevoNombre.empty()) {
+		throw std::invalid_argument(
+			"El nombre del departamento no puede estar vacio.");
+	}
+
+	nombre = nuevoNombre;
+}
+
+void Departamento::agregarPuesto(
+	const std::string& codigoPuesto,
+	const std::string& nombrePuesto) {
+
+	if (existePuesto(codigoPuesto)) {
+		throw std::invalid_argument(
+			"Ya existe un puesto con el codigo " + codigoPuesto +
+			" en el departamento " + codigo + ".");
+	}
+
+	puestos.agregar(new Puesto(codigoPuesto, nombrePuesto));
+}
+
+bool Departamento::eliminarPuesto(const std::string& codigoPuesto) {
+	Puesto* puesto = buscarPuesto(codigoPuesto);
+
+	if (puesto == nullptr) {
+		return false;
+	}
+
+	return puestos.eliminar(puesto);
+}
+
+Puesto* Departamento::buscarPuesto(
+	const std::string& codigoPuesto) const {
+
+	return puestos.buscar([&](const Puesto* puesto) {
+		return puesto->getCodigo() == codigoPuesto;
+	});
+}
+
+bool Departamento::existePuesto(const std::string& codigoPuesto) const {
+	return buscarPuesto(codigoPuesto) != nullptr;
+}
+
+const Lista<Puesto>& Departamento::getPuestos() const {
+	return puestos;
+}
+
+modelo/ComprobantePago.h
+#ifndef COMPROBANTEPAGO_H
+#define COMPROBANTEPAGO_H
+
+#include "modelo/Departamento.h"
+#include "modelo/Empleado.h"
+#include <string>
+
+
+struct DesglosePago {
+	double salarioBase = 0.0;
+	double pagoHorasExtra = 0.0;
+	double bonificacionNocturna = 0.0;
+	double bonificacionGuardias = 0.0;
+	double bonificacionPuesto = 0.0;
+	double salarioBruto = 0.0;
+	double deduccionLegal = 0.0;
+	double salarioNeto = 0.0;
+};
+
+class ComprobantePago {
+private:
+	int numero;
+	std::string periodo;
+	std::string fechaEmision;
+	bool pagado;
+	std::string fechaPago;
+
+	const Empleado* empleado;
+	const Departamento* departamento;
+
+	std::string idEmpleado;
+	std::string nombreEmpleado;
+	std::string tipoEmpleado;
+	std::string codigoDepartamento;
+	std::string nombreDepartamento;
+
+	DesglosePago desglose;
+
+	static void validarEncabezado(
+		int numero,
+		const std::string& periodo,
+		const std::string& fechaEmision);
+
+public:
+	
+	ComprobantePago(
+		int numero,
+		const std::string& periodo,
+		const std::string& fechaEmision,
+		const Empleado* empleado,
+		const Departamento* departamento);
+
+	
+	ComprobantePago(
+		int numero,
+		const std::string& periodo,
+		const std::string& fechaEmision,
+		bool pagado,
+		const std::string& fechaPago,
+		const std::string& idEmpleado,
+		const std::string& nombreEmpleado,
+		const std::string& tipoEmpleado,
+		const std::string& codigoDepartamento,
+		const std::string& nombreDepartamento,
+		const DesglosePago& desglose,
+		const Empleado* empleado,
+		const Departamento* departamento);
+
+	ComprobantePago(const ComprobantePago&) = delete;
+	ComprobantePago& operator=(const ComprobantePago&) = delete;
+
+	int getNumero() const;
+	const std::string& getPeriodo() const;
+	const std::string& getFechaEmision() const;
+	bool estaPagado() const;
+	const std::string& getFechaPago() const;
+
+	const Empleado* getEmpleado() const;
+	const Departamento* getDepartamento() const;
+
+	const std::string& getIdEmpleado() const;
+	const std::string& getNombreEmpleado() const;
+	const std::string& getTipoEmpleado() const;
+	const std::string& getCodigoDepartamento() const;
+	const std::string& getNombreDepartamento() const;
+
+	const DesglosePago& getDesglose() const;
+
+	void marcarPagado(const std::string& fecha);
+
+	void desvincularEmpleado();
+	void desvincularDepartamento();
+};
+
+#endif
+
+modelo/ComprobantePago.cpp
+#include "modelo/ComprobantePago.h"
+#include <stdexcept>
+
+void ComprobantePago::validarEncabezado(
+	int numero,
+	const std::string& periodo,
+	const std::string& fechaEmision) {
+
+	if (numero <= 0) {
+		throw std::invalid_argument(
+			"El numero de comprobante debe ser mayor que cero.");
+	}
+
+	if (periodo.empty()) {
+		throw std::invalid_argument(
+			"El periodo no puede estar vacio.");
+	}
+
+	if (fechaEmision.empty()) {
+		throw std::invalid_argument(
+			"La fecha de emision no puede estar vacia.");
+	}
+}
+
+ComprobantePago::ComprobantePago(
+	int numero,
+	const std::string& periodo,
+	const std::string& fechaEmision,
+	const Empleado* empleado,
+	const Departamento* departamento)
+
+	: numero(numero),
+	  periodo(periodo),
+	  fechaEmision(fechaEmision),
+	  pagado(false),
+	  fechaPago(),
+	  empleado(empleado),
+	  departamento(departamento),
+	  idEmpleado(),
+	  nombreEmpleado(),
+	  tipoEmpleado(),
+	  codigoDepartamento(),
+	  nombreDepartamento(),
+	  desglose() {
+
+	validarEncabezado(numero, periodo, fechaEmision);
+
+	if (empleado == nullptr) {
+		throw std::invalid_argument(
+			"El comprobante requiere un empleado.");
+	}
+
+	idEmpleado = empleado->getIdentificacion();
+	nombreEmpleado = empleado->getNombre();
+	tipoEmpleado = empleado->obtenerTipo();
+
+	if (departamento != nullptr) {
+		codigoDepartamento = departamento->getCodigo();
+		nombreDepartamento = departamento->getNombre();
+	}
+
+	desglose.salarioBase = empleado->getSalarioBase();
+	desglose.pagoHorasExtra = empleado->calcularPagoHorasExtra();
+	desglose.bonificacionNocturna = empleado->calcularBonificacionNocturna();
+	desglose.bonificacionGuardias = empleado->calcularBonificacionGuardias();
+	desglose.bonificacionPuesto = empleado->calcularBonificacionPuesto();
+	desglose.salarioBruto = empleado->calcularSalarioBruto();
+	desglose.deduccionLegal = empleado->calcularDeduccionLegal();
+	desglose.salarioNeto = empleado->calcularSalarioNeto();
+}
+
+ComprobantePago::ComprobantePago(
+	int numero,
+	const std::string& periodo,
+	const std::string& fechaEmision,
+	bool pagado,
+	const std::string& fechaPago,
+	const std::string& idEmpleado,
+	const std::string& nombreEmpleado,
+	const std::string& tipoEmpleado,
+	const std::string& codigoDepartamento,
+	const std::string& nombreDepartamento,
+	const DesglosePago& desglose,
+	const Empleado* empleado,
+	const Departamento* departamento)
+
+	: numero(numero),
+	  periodo(periodo),
+	  fechaEmision(fechaEmision),
+	  pagado(pagado),
+	  fechaPago(fechaPago),
+	  empleado(empleado),
+	  departamento(departamento),
+	  idEmpleado(idEmpleado),
+	  nombreEmpleado(nombreEmpleado),
+	  tipoEmpleado(tipoEmpleado),
+	  codigoDepartamento(codigoDepartamento),
+	  nombreDepartamento(nombreDepartamento),
+	  desglose(desglose) {
+
+	validarEncabezado(numero, periodo, fechaEmision);
+
+	if (idEmpleado.empty()) {
+		throw std::invalid_argument(
+			"El comprobante debe indicar la identificacion del empleado.");
+	}
+}
+
+int ComprobantePago::getNumero() const {
+	return numero;
+}
+
+const std::string& ComprobantePago::getPeriodo() const {
+	return periodo;
+}
+
+const std::string& ComprobantePago::getFechaEmision() const {
+	return fechaEmision;
+}
+
+bool ComprobantePago::estaPagado() const {
+	return pagado;
+}
+
+const std::string& ComprobantePago::getFechaPago() const {
+	return fechaPago;
+}
+
+const Empleado* ComprobantePago::getEmpleado() const {
+	return empleado;
+}
+
+const Departamento* ComprobantePago::getDepartamento() const {
+	return departamento;
+}
+
+const std::string& ComprobantePago::getIdEmpleado() const {
+	return idEmpleado;
+}
+
+const std::string& ComprobantePago::getNombreEmpleado() const {
+	return nombreEmpleado;
+}
+
+const std::string& ComprobantePago::getTipoEmpleado() const {
+	return tipoEmpleado;
+}
+
+const std::string& ComprobantePago::getCodigoDepartamento() const {
+	return codigoDepartamento;
+}
+
+const std::string& ComprobantePago::getNombreDepartamento() const {
+	return nombreDepartamento;
+}
+
+const DesglosePago& ComprobantePago::getDesglose() const {
+	return desglose;
+}
+
+void ComprobantePago::marcarPagado(const std::string& fecha) {
+	if (pagado) {
+		throw std::logic_error(
+			"El comprobante " + std::to_string(numero) +
+			" ya fue pagado.");
+	}
+
+	if (fecha.empty()) {
+		throw std::invalid_argument(
+			"La fecha de pago no puede estar vacia.");
+	}
+
+	pagado = true;
+	fechaPago = fecha;
+}
+
+void ComprobantePago::desvincularEmpleado() {
+	empleado = nullptr;
+}
+
+void ComprobantePago::desvincularDepartamento() {
+	departamento = nullptr;
+}
+
+modelo/FabricaEmpleado.h
+#ifndef FABRICAEMPLEADO_H
+#define FABRICAEMPLEADO_H
+
+#include "colecciones/Lista.h"
+#include "modelo/Empleado.h"
+#include <string>
+
+
+struct DatosEmpleado {
+	std::string tipo;
+	std::string identificacion;
+	std::string nombre;
+	double salarioBase = 0.0;
+	double horasExtra = 0.0;
+	double valorHoraExtra = 0.0;
+	int turnosNocturnos = 0;
+	double bonificacionTurnoNocturno = 0.0;
+	int guardias = 0;
+	double bonificacionGuardia = 0.0;
+	double tasaDeduccionLegal = 0.0;
+	std::string detallePuesto;
+	double bonificacionPuesto = 0.0;
+	std::string idDepartamento;
+	std::string codigoPuesto;
+};
+
+typedef Empleado* (*CreadorEmpleado)(const DatosEmpleado& datos);
+
+struct RegistroCreador {
+	std::string tipo;
+	std::string etiquetaDetalle;
+	CreadorEmpleado creador;
+};
+
+
+class FabricaEmpleado {
+private:
+	Lista<RegistroCreador> registros;
+
+	const RegistroCreador* buscarRegistro(const std::string& tipo) const;
+
+public:
+	
+	FabricaEmpleado();
+
+	FabricaEmpleado(const FabricaEmpleado&) = delete;
+	FabricaEmpleado& operator=(const FabricaEmpleado&) = delete;
+
+	void registrar(
+		const std::string& tipo,
+		const std::string& etiquetaDetalle,
+		CreadorEmpleado creador);
+
+	bool soporta(const std::string& tipo) const;
+
+	
+	std::string obtenerEtiquetaDetalle(const std::string& tipo) const;
+
+	
+	Empleado* crear(const DatosEmpleado& datos) const;
+
+	const Lista<RegistroCreador>& getRegistros() const;
+};
+
+#endif
+
+modelo/FabricaEmpleado.cpp
+#include "modelo/FabricaEmpleado.h"
+#include "modelo/Administrativo.h"
+#include "modelo/Enfermero.h"
+#include "modelo/Medico.h"
+#include <stdexcept>
+
+namespace {
+
+	Empleado* crearMedico(const DatosEmpleado& d) {
+		return new Medico(
+			d.identificacion, d.nombre, d.salarioBase,
+			d.horasExtra, d.valorHoraExtra,
+			d.turnosNocturnos, d.bonificacionTurnoNocturno,
+			d.guardias, d.bonificacionGuardia,
+			d.tasaDeduccionLegal,
+			d.detallePuesto, d.bonificacionPuesto);
+	}
+
+	Empleado* crearEnfermero(const DatosEmpleado& d) {
+		return new Enfermero(
+			d.identificacion, d.nombre, d.salarioBase,
+			d.horasExtra, d.valorHoraExtra,
+			d.turnosNocturnos, d.bonificacionTurnoNocturno,
+			d.guardias, d.bonificacionGuardia,
+			d.tasaDeduccionLegal,
+			d.detallePuesto, d.bonificacionPuesto);
+	}
+
+	Empleado* crearAdministrativo(const DatosEmpleado& d) {
+		return new Administrativo(
+			d.identificacion, d.nombre, d.salarioBase,
+			d.horasExtra, d.valorHoraExtra,
+			d.turnosNocturnos, d.bonificacionTurnoNocturno,
+			d.guardias, d.bonificacionGuardia,
+			d.tasaDeduccionLegal,
+			d.detallePuesto, d.bonificacionPuesto);
+	}
+
+}
+
+FabricaEmpleado::FabricaEmpleado() {
+	registrar("Medico", "Especialidad", crearMedico);
+	registrar("Enfermero", "Area asignada", crearEnfermero);
+	registrar("Administrativo", "Cargo", crearAdministrativo);
+}
+
+const RegistroCreador* FabricaEmpleado::buscarRegistro(
+	const std::string& tipo) const {
+
+	return registros.buscar([&](const RegistroCreador* registro) {
+		return registro->tipo == tipo;
+	});
+}
+
+void FabricaEmpleado::registrar(
+	const std::string& tipo,
+	const std::string& etiquetaDetalle,
+	CreadorEmpleado creador) {
+
+	if (tipo.empty()) {
+		throw std::invalid_argument(
+			"El tipo de empleado no puede estar vacio.");
+	}
+
+	if (creador == nullptr) {
+		throw std::invalid_argument(
+			"El creador del tipo " + tipo + " no puede ser nulo.");
+	}
+
+	if (buscarRegistro(tipo) != nullptr) {
+		throw std::invalid_argument(
+			"El tipo de empleado " + tipo + " ya esta registrado.");
+	}
+
+	registros.agregar(new RegistroCreador{tipo, etiquetaDetalle, creador});
+}
+
+bool FabricaEmpleado::soporta(const std::string& tipo) const {
+	return buscarRegistro(tipo) != nullptr;
+}
+
+std::string FabricaEmpleado::obtenerEtiquetaDetalle(
+	const std::string& tipo) const {
+
+	const RegistroCreador* registro = buscarRegistro(tipo);
+
+	if (registro == nullptr) {
+		return "Detalle del puesto";
+	}
+
+	return registro->etiquetaDetalle;
+}
+
+Empleado* FabricaEmpleado::crear(const DatosEmpleado& datos) const {
+	const RegistroCreador* registro = buscarRegistro(datos.tipo);
+
+	if (registro == nullptr) {
+		throw std::invalid_argument(
+			"Tipo de empleado desconocido: " + datos.tipo);
+	}
+
+	Empleado* empleado = registro->creador(datos);
+	empleado->setIdDepartamento(datos.idDepartamento);
+	empleado->setCodigoPuesto(datos.codigoPuesto);
+
+	return empleado;
+}
+
+const Lista<RegistroCreador>& FabricaEmpleado::getRegistros() const {
+	return registros;
+}
+
+persistencia/IAlmacenamientoEmpleados.h
+#ifndef IALMACENAMIENTOEMPLEADOS_H
+#define IALMACENAMIENTOEMPLEADOS_H
+
+#include "colecciones/Lista.h"
+#include "modelo/Empleado.h"
+
+
+class IAlmacenamientoEmpleados {
+public:
+	virtual ~IAlmacenamientoEmpleados() = default;
+
+	
+	virtual void cargarEmpleados(Lista<Empleado>& destino) = 0;
+
+	virtual void guardarEmpleados(const Lista<Empleado>& origen) = 0;
+};
+
+#endif
+
+persistencia/IAlmacenamientoDepartamentos.h
+#ifndef IALMACENAMIENTODEPARTAMENTOS_H
+#define IALMACENAMIENTODEPARTAMENTOS_H
+
+#include "colecciones/Lista.h"
+#include "modelo/Departamento.h"
+
+
+class IAlmacenamientoDepartamentos {
+public:
+	virtual ~IAlmacenamientoDepartamentos() = default;
+
+	virtual void cargarDepartamentos(Lista<Departamento>& destino) = 0;
+
+	virtual void guardarDepartamentos(const Lista<Departamento>& origen) = 0;
+};
+
+#endif
+
+persistencia/IAlmacenamientoComprobantes.h
+#ifndef IALMACENAMIENTOCOMPROBANTES_H
+#define IALMACENAMIENTOCOMPROBANTES_H
+
+#include "colecciones/Lista.h"
+#include "modelo/ComprobantePago.h"
+#include "modelo/Departamento.h"
+#include "modelo/Empleado.h"
+
+
+class IAlmacenamientoComprobantes {
+public:
+	virtual ~IAlmacenamientoComprobantes() = default;
+
+	
+	virtual void cargarComprobantes(
+		Lista<ComprobantePago>& destino,
+		const Lista<Empleado>& empleados,
+		const Lista<Departamento>& departamentos) = 0;
+
+	virtual void guardarComprobantes(
+		const Lista<ComprobantePago>& origen) = 0;
+};
+
+#endif
+
+persistencia/AlmacenamientoArchivos.h
+#ifndef ALMACENAMIENTOARCHIVOS_H
+#define ALMACENAMIENTOARCHIVOS_H
+
+#include "modelo/FabricaEmpleado.h"
+#include "persistencia/IAlmacenamientoComprobantes.h"
+#include "persistencia/IAlmacenamientoDepartamentos.h"
+#include "persistencia/IAlmacenamientoEmpleados.h"
+#include <string>
+
+
+class AlmacenamientoArchivos : public IAlmacenamientoEmpleados,
+							   public IAlmacenamientoDepartamentos,
+							   public IAlmacenamientoComprobantes {
+private:
+	const FabricaEmpleado& fabrica;
+	std::string rutaEmpleados;
+	std::string rutaDepartamentos;
+	std::string rutaPlanilla;
+
+public:
+	explicit AlmacenamientoArchivos(
+		const FabricaEmpleado& fabrica,
+		const std::string& rutaEmpleados = "empleados.txt",
+		const std::string& rutaDepartamentos = "departamentos.txt",
+		const std::string& rutaPlanilla = "planilla.txt");
+
+	void cargarEmpleados(Lista<Empleado>& destino) override;
+	void guardarEmpleados(const Lista<Empleado>& origen) override;
+
+	void cargarDepartamentos(Lista<Departamento>& destino) override;
+	void guardarDepartamentos(const Lista<Departamento>& origen) override;
+
+	void cargarComprobantes(
+		Lista<ComprobantePago>& destino,
+		const Lista<Empleado>& empleados,
+		const Lista<Departamento>& departamentos) override;
+
+	void guardarComprobantes(const Lista<ComprobantePago>& origen) override;
+};
+
+#endif
+
+persistencia/AlmacenamientoArchivos.cpp
+#include "persistencia/AlmacenamientoArchivos.h"
+#include <filesystem>
+#include <fstream>
+#include <functional>
+#include <iomanip>
+#include <locale>
+#include <sstream>
+#include <stdexcept>
+#include <system_error>
+#include <vector>
+
+namespace {
+
+	const char SEPARADOR = '|';
+
+	std::vector<std::string> dividir(const std::string& linea) {
+		std::vector<std::string> campos;
+		std::string actual;
+
+		for (char c : linea) {
+			if (c == SEPARADOR) {
+				campos.push_back(actual);
+				actual.clear();
+			} else {
+				actual += c;
+			}
+		}
+
+		campos.push_back(actual);
+		return campos;
+	}
+
+	
+	std::string limpiarCampo(const std::string& texto) {
+		std::string resultado = texto;
+
+		for (char& c : resultado) {
+			if (c == SEPARADOR) {
+				c = '/';
+			} else if (c == '\n' || c == '\r') {
+				c = ' ';
+			}
+		}
+
+		return resultado;
+	}
+
+	std::string aTexto(double valor) {
+		std::ostringstream flujo;
+		flujo.imbue(std::locale::classic());
+		flujo << std::setprecision(15) << valor;
+		return flujo.str();
+	}
+
+	double aDecimal(const std::string& texto, const std::string& campo) {
+		std::istringstream flujo(texto);
+		flujo.imbue(std::locale::classic());
+
+		double valor = 0.0;
+		flujo >> valor;
+
+		if (flujo.fail()) {
+			throw std::invalid_argument(
+				"Valor decimal invalido en " + campo + ": '" + texto + "'.");
+		}
+
+		flujo >> std::ws;
+
+		if (!flujo.eof()) {
+			throw std::invalid_argument(
+				"Valor decimal invalido en " + campo + ": '" + texto + "'.");
+		}
+
+		return valor;
+	}
+
+	int aEntero(const std::string& texto, const std::string& campo) {
+		std::size_t posicion = 0;
+		int valor = 0;
+
+		try {
+			valor = std::stoi(texto, &posicion);
+		} catch (const std::exception&) {
+			throw std::invalid_argument(
+				"Valor entero invalido en " + campo + ": '" + texto + "'.");
+		}
+
+		if (posicion != texto.size()) {
+			throw std::invalid_argument(
+				"Valor entero invalido en " + campo + ": '" + texto + "'.");
+		}
+
+		return valor;
+	}
+
+	bool aBooleano(const std::string& texto, const std::string& campo) {
+		if (texto == "1") {
+			return true;
+		}
+
+		if (texto == "0") {
+			return false;
+		}
+
+		throw std::invalid_argument(
+			"Valor booleano invalido en " + campo + ": '" + texto + "'.");
+	}
+
+	void exigirCampos(
+		const std::vector<std::string>& campos, std::size_t esperados) {
+
+		if (campos.size() != esperados) {
+			throw std::invalid_argument(
+				"Se esperaban " + std::to_string(esperados) +
+				" campos y se encontraron " +
+				std::to_string(campos.size()) + ".");
+		}
+	}
+
+	
+	void procesarLineas(
+		const std::string& ruta,
+		const std::function<void(const std::string&)>& procesador) {
+
+		std::ifstream archivo(ruta);
+
+		if (!archivo.is_open()) {
+			return;
+		}
+
+		std::string linea;
+		int numeroLinea = 0;
+
+		while (std::getline(archivo, linea)) {
+			++numeroLinea;
+
+			if (!linea.empty() && linea.back() == '\r') {
+				linea.pop_back();
+			}
+
+			if (linea.empty() || linea[0] == '#') {
+				continue;
+			}
+
+			try {
+				procesador(linea);
+			} catch (const std::exception& e) {
+				throw std::runtime_error(
+					ruta + ", linea " + std::to_string(numeroLinea) +
+					": " + e.what());
+			}
+		}
+	}
+
+	
+	void escribirArchivo(
+		const std::string& ruta, const std::string& contenido) {
+
+		const std::string temporal = ruta + ".tmp";
+
+		{
+			std::ofstream salida(temporal, std::ios::trunc);
+
+			if (!salida.is_open()) {
+				throw std::runtime_error(
+					"No se pudo abrir el archivo " + temporal);
+			}
+
+			salida << contenido;
+			salida.flush();
+
+			if (!salida) {
+				throw std::runtime_error(
+					"Error al escribir el archivo " + temporal);
+			}
+		}
+
+		std::error_code error;
+		std::filesystem::rename(temporal, ruta, error);
+
+		if (error) {
+			throw std::runtime_error(
+				"No se pudo actualizar " + ruta + ": " + error.message());
+		}
+	}
+
+}
+
+AlmacenamientoArchivos::AlmacenamientoArchivos(
+	const FabricaEmpleado& fabrica,
+	const std::string& rutaEmpleados,
+	const std::string& rutaDepartamentos,
+	const std::string& rutaPlanilla)
+
+	: fabrica(fabrica),
+	  rutaEmpleados(rutaEmpleados),
+	  rutaDepartamentos(rutaDepartamentos),
+	  rutaPlanilla(rutaPlanilla) {}
+
+
+
+void AlmacenamientoArchivos::cargarEmpleados(Lista<Empleado>& destino) {
+	destino.limpiar();
+
+	procesarLineas(rutaEmpleados, [&](const std::string& linea) {
+		std::vector<std::string> c = dividir(linea);
+		exigirCampos(c, 15);
+
+		DatosEmpleado datos;
+		datos.tipo = c[0];
+		datos.identificacion = c[1];
+		datos.nombre = c[2];
+		datos.salarioBase = aDecimal(c[3], "salario base");
+		datos.horasExtra = aDecimal(c[4], "horas extra");
+		datos.valorHoraExtra = aDecimal(c[5], "valor hora extra");
+		datos.turnosNocturnos = aEntero(c[6], "turnos nocturnos");
+		datos.bonificacionTurnoNocturno = aDecimal(c[7], "bonificacion nocturna");
+		datos.guardias = aEntero(c[8], "guardias");
+		datos.bonificacionGuardia = aDecimal(c[9], "bonificacion guardia");
+		datos.tasaDeduccionLegal = aDecimal(c[10], "tasa de deduccion");
+		datos.idDepartamento = c[11];
+		datos.codigoPuesto = c[12];
+		datos.detallePuesto = c[13];
+		datos.bonificacionPuesto = aDecimal(c[14], "bonificacion del puesto");
+
+		destino.agregar(fabrica.crear(datos));
+	});
+}
+
+void AlmacenamientoArchivos::guardarEmpleados(const Lista<Empleado>& origen) {
+	std::ostringstream contenido;
+
+	for (Nodo<Empleado>* nodo = origen.primero();
+		 nodo != nullptr;
+		 nodo = nodo->getSiguiente()) {
+
+		const Empleado* e = nodo->getDato();
+
+		contenido
+			<< limpiarCampo(e->obtenerTipo()) << SEPARADOR
+			<< limpiarCampo(e->getIdentificacion()) << SEPARADOR
+			<< limpiarCampo(e->getNombre()) << SEPARADOR
+			<< aTexto(e->getSalarioBase()) << SEPARADOR
+			<< aTexto(e->getHorasExtra()) << SEPARADOR
+			<< aTexto(e->getValorHoraExtra()) << SEPARADOR
+			<< e->getTurnosNocturnos() << SEPARADOR
+			<< aTexto(e->getBonificacionTurnoNocturno()) << SEPARADOR
+			<< e->getGuardias() << SEPARADOR
+			<< aTexto(e->getBonificacionGuardia()) << SEPARADOR
+			<< aTexto(e->getTasaDeduccionLegal()) << SEPARADOR
+			<< limpiarCampo(e->getIdDepartamento()) << SEPARADOR
+			<< limpiarCampo(e->getCodigoPuesto()) << SEPARADOR
+			<< limpiarCampo(e->obtenerDetallePuesto()) << SEPARADOR
+			<< aTexto(e->calcularBonificacionPuesto())
+			<< '\n';
+	}
+
+	escribirArchivo(rutaEmpleados, contenido.str());
+}
+
+
+
+void AlmacenamientoArchivos::cargarDepartamentos(
+	Lista<Departamento>& destino) {
+
+	destino.limpiar();
+
+	procesarLineas(rutaDepartamentos, [&](const std::string& linea) {
+		std::vector<std::string> c = dividir(linea);
+
+		if (c[0] == "D") {
+			exigirCampos(c, 3);
+			destino.agregar(new Departamento(c[1], c[2]));
+		} else if (c[0] == "P") {
+			exigirCampos(c, 4);
+
+			Departamento* departamento = destino.buscar(
+				[&](const Departamento* d) {
+					return d->getCodigo() == c[1];
+				});
+
+			if (departamento == nullptr) {
+				throw std::invalid_argument(
+					"El puesto " + c[2] + " hace referencia a un "
+					"departamento inexistente: " + c[1]);
+			}
+
+			departamento->agregarPuesto(c[2], c[3]);
+		} else {
+			throw std::invalid_argument(
+				"Tipo de registro desconocido: '" + c[0] + "'.");
+		}
+	});
+}
+
+void AlmacenamientoArchivos::guardarDepartamentos(
+	const Lista<Departamento>& origen) {
+
+	std::ostringstream contenido;
+
+	for (Nodo<Departamento>* nodo = origen.primero();
+		 nodo != nullptr;
+		 nodo = nodo->getSiguiente()) {
+
+		const Departamento* d = nodo->getDato();
+
+		contenido << "D" << SEPARADOR
+				  << limpiarCampo(d->getCodigo()) << SEPARADOR
+				  << limpiarCampo(d->getNombre()) << '\n';
+
+		const Lista<Puesto>& puestos = d->getPuestos();
+
+		for (Nodo<Puesto>* np = puestos.primero();
+			 np != nullptr;
+			 np = np->getSiguiente()) {
+
+			contenido << "P" << SEPARADOR
+					  << limpiarCampo(d->getCodigo()) << SEPARADOR
+					  << limpiarCampo(np->getDato()->getCodigo()) << SEPARADOR
+					  << limpiarCampo(np->getDato()->getNombre()) << '\n';
+		}
+	}
+
+	escribirArchivo(rutaDepartamentos, contenido.str());
+}
+
+
+
+void AlmacenamientoArchivos::cargarComprobantes(
+	Lista<ComprobantePago>& destino,
+	const Lista<Empleado>& empleados,
+	const Lista<Departamento>& departamentos) {
+
+	destino.limpiar();
+
+	procesarLineas(rutaPlanilla, [&](const std::string& linea) {
+		std::vector<std::string> c = dividir(linea);
+		exigirCampos(c, 18);
+
+		DesglosePago desglose;
+		desglose.salarioBase = aDecimal(c[10], "salario base");
+		desglose.pagoHorasExtra = aDecimal(c[11], "pago horas extra");
+		desglose.bonificacionNocturna = aDecimal(c[12], "bonificacion nocturna");
+		desglose.bonificacionGuardias = aDecimal(c[13], "bonificacion guardias");
+		desglose.bonificacionPuesto = aDecimal(c[14], "bonificacion puesto");
+		desglose.salarioBruto = aDecimal(c[15], "salario bruto");
+		desglose.deduccionLegal = aDecimal(c[16], "deduccion legal");
+		desglose.salarioNeto = aDecimal(c[17], "salario neto");
+
+		
+		const Empleado* empleado = empleados.buscar(
+			[&](const Empleado* e) {
+				return e->getIdentificacion() == c[5];
+			});
+
+		const Departamento* departamento = nullptr;
+
+		if (!c[8].empty()) {
+			departamento = departamentos.buscar(
+				[&](const Departamento* d) {
+					return d->getCodigo() == c[8];
+				});
+		}
+
+		destino.agregar(new ComprobantePago(
+			aEntero(c[0], "numero de comprobante"),
+			c[1],
+			c[2],
+			aBooleano(c[3], "estado de pago"),
+			c[4],
+			c[5],
+			c[6],
+			c[7],
+			c[8],
+			c[9],
+			desglose,
+			empleado,
+			departamento));
+	});
+}
+
+void AlmacenamientoArchivos::guardarComprobantes(
+	const Lista<ComprobantePago>& origen) {
+
+	std::ostringstream contenido;
+
+	for (Nodo<ComprobantePago>* nodo = origen.primero();
+		 nodo != nullptr;
+		 nodo = nodo->getSiguiente()) {
+
+		const ComprobantePago* p = nodo->getDato();
+		const DesglosePago& d = p->getDesglose();
+
+		contenido
+			<< p->getNumero() << SEPARADOR
+			<< limpiarCampo(p->getPeriodo()) << SEPARADOR
+			<< limpiarCampo(p->getFechaEmision()) << SEPARADOR
+			<< (p->estaPagado() ? "1" : "0") << SEPARADOR
+			<< limpiarCampo(p->getFechaPago()) << SEPARADOR
+			<< limpiarCampo(p->getIdEmpleado()) << SEPARADOR
+			<< limpiarCampo(p->getNombreEmpleado()) << SEPARADOR
+			<< limpiarCampo(p->getTipoEmpleado()) << SEPARADOR
+			<< limpiarCampo(p->getCodigoDepartamento()) << SEPARADOR
+			<< limpiarCampo(p->getNombreDepartamento()) << SEPARADOR
+			<< aTexto(d.salarioBase) << SEPARADOR
+			<< aTexto(d.pagoHorasExtra) << SEPARADOR
+			<< aTexto(d.bonificacionNocturna) << SEPARADOR
+			<< aTexto(d.bonificacionGuardias) << SEPARADOR
+			<< aTexto(d.bonificacionPuesto) << SEPARADOR
+			<< aTexto(d.salarioBruto) << SEPARADOR
+			<< aTexto(d.deduccionLegal) << SEPARADOR
+			<< aTexto(d.salarioNeto)
+			<< '\n';
+	}
+
+	escribirArchivo(rutaPlanilla, contenido.str());
+}
+
+controladores/ControladorDepartamentos.h
+#ifndef CONTROLADORDEPARTAMENTOS_H
+#define CONTROLADORDEPARTAMENTOS_H
+
+#include "colecciones/Lista.h"
+#include "modelo/Departamento.h"
+#include "persistencia/IAlmacenamientoDepartamentos.h"
+#include <string>
+
+
+class ControladorDepartamentos {
+private:
+	IAlmacenamientoDepartamentos& almacenamiento;
+	Lista<Departamento> departamentos;
+
+public:
+	
+	explicit ControladorDepartamentos(
+		IAlmacenamientoDepartamentos& almacenamiento);
+
+	ControladorDepartamentos(const ControladorDepartamentos&) = delete;
+	ControladorDepartamentos& operator=(
+		const ControladorDepartamentos&) = delete;
+
+	Departamento* crear(
+		const std::string& codigo, const std::string& nombre);
+
+	Departamento* buscar(const std::string& codigo) const;
+
+	void renombrar(
+		const std::string& codigo, const std::string& nuevoNombre);
+
+	void eliminar(const std::string& codigo);
+
+	void agregarPuesto(
+		const std::string& codigoDepartamento,
+		const std::string& codigoPuesto,
+		const std::string& nombrePuesto);
+
+	void eliminarPuesto(
+		const std::string& codigoDepartamento,
+		const std::string& codigoPuesto);
+
+	bool existePuesto(
+		const std::string& codigoDepartamento,
+		const std::string& codigoPuesto) const;
+
+	const Lista<Departamento>& getDepartamentos() const;
+
+	void guardar() const;
+};
+
+#endif
+
+controladores/ControladorDepartamentos.cpp
+#include "controladores/ControladorDepartamentos.h"
+#include <stdexcept>
+
+ControladorDepartamentos::ControladorDepartamentos(
+	IAlmacenamientoDepartamentos& almacenamiento)
+	: almacenamiento(almacenamiento) {
+
+	this->almacenamiento.cargarDepartamentos(departamentos);
+}
+
+Departamento* ControladorDepartamentos::crear(
+	const std::string& codigo, const std::string& nombre) {
+
+	if (buscar(codigo) != nullptr) {
+		throw std::invalid_argument(
+			"Ya existe un departamento con el codigo " + codigo + ".");
+	}
+
+	Departamento* departamento = new Departamento(codigo, nombre);
+	departamentos.agregar(departamento);
+	guardar();
+
+	return departamento;
+}
+
+Departamento* ControladorDepartamentos::buscar(
+	const std::string& codigo) const {
+
+	return departamentos.buscar([&](const Departamento* d) {
+		return d->getCodigo() == codigo;
+	});
+}
+
+void ControladorDepartamentos::renombrar(
+	const std::string& codigo, const std::string& nuevoNombre) {
+
+	Departamento* departamento = buscar(codigo);
+
+	if (departamento == nullptr) {
+		throw std::invalid_argument(
+			"No existe un departamento con el codigo " + codigo + ".");
+	}
+
+	departamento->setNombre(nuevoNombre);
+	guardar();
+}
+
+void ControladorDepartamentos::eliminar(const std::string& codigo) {
+	Departamento* departamento = buscar(codigo);
+
+	if (departamento == nullptr) {
+		throw std::invalid_argument(
+			"No existe un departamento con el codigo " + codigo + ".");
+	}
+
+	
+	departamentos.eliminar(departamento);
+	guardar();
+}
+
+void ControladorDepartamentos::agregarPuesto(
+	const std::string& codigoDepartamento,
+	const std::string& codigoPuesto,
+	const std::string& nombrePuesto) {
+
+	Departamento* departamento = buscar(codigoDepartamento);
+
+	if (departamento == nullptr) {
+		throw std::invalid_argument(
+			"No existe un departamento con el codigo " +
+			codigoDepartamento + ".");
+	}
+
+	departamento->agregarPuesto(codigoPuesto, nombrePuesto);
+	guardar();
+}
+
+void ControladorDepartamentos::eliminarPuesto(
+	const std::string& codigoDepartamento,
+	const std::string& codigoPuesto) {
+
+	Departamento* departamento = buscar(codigoDepartamento);
+
+	if (departamento == nullptr) {
+		throw std::invalid_argument(
+			"No existe un departamento con el codigo " +
+			codigoDepartamento + ".");
+	}
+
+	if (!departamento->eliminarPuesto(codigoPuesto)) {
+		throw std::invalid_argument(
+			"No existe el puesto " + codigoPuesto +
+			" en el departamento " + codigoDepartamento + ".");
+	}
+
+	guardar();
+}
+
+bool ControladorDepartamentos::existePuesto(
+	const std::string& codigoDepartamento,
+	const std::string& codigoPuesto) const {
+
+	const Departamento* departamento = buscar(codigoDepartamento);
+
+	return departamento != nullptr &&
+		   departamento->existePuesto(codigoPuesto);
+}
+
+const Lista<Departamento>& ControladorDepartamentos::getDepartamentos() const {
+	return departamentos;
+}
+
+void ControladorDepartamentos::guardar() const {
+	almacenamiento.guardarDepartamentos(departamentos);
+}
+
+controladores/ControladorEmpleados.h
+#ifndef CONTROLADOREMPLEADOS_H
+#define CONTROLADOREMPLEADOS_H
+
+#include "colecciones/Lista.h"
+#include "controladores/ControladorDepartamentos.h"
+#include "modelo/Empleado.h"
+#include "modelo/FabricaEmpleado.h"
+#include "persistencia/IAlmacenamientoEmpleados.h"
+#include <string>
+
+
+class ControladorEmpleados {
+private:
+	IAlmacenamientoEmpleados& almacenamiento;
+	const FabricaEmpleado& fabrica;
+	const ControladorDepartamentos& departamentos;
+	Lista<Empleado> empleados;
+
+	void validarAsignacion(
+		const std::string& idDepartamento,
+		const std::string& codigoPuesto) const;
+
+public:
+	
+	ControladorEmpleados(
+		IAlmacenamientoEmpleados& almacenamiento,
+		const FabricaEmpleado& fabrica,
+		const ControladorDepartamentos& departamentos);
+
+	ControladorEmpleados(const ControladorEmpleados&) = delete;
+	ControladorEmpleados& operator=(const ControladorEmpleados&) = delete;
+
+	Empleado* registrar(const DatosEmpleado& datos);
+
+	Empleado* buscar(const std::string& identificacion) const;
+
+	void eliminar(const std::string& identificacion);
+
+	
+	void asignarPuesto(
+		const std::string& identificacion,
+		const std::string& idDepartamento,
+		const std::string& codigoPuesto);
+
+	
+	void desasignarDepartamento(const std::string& idDepartamento);
+	void desasignarPuesto(
+		const std::string& idDepartamento,
+		const std::string& codigoPuesto);
+
+	int contarPorDepartamento(const std::string& idDepartamento) const;
+
+	const Lista<Empleado>& getEmpleados() const;
+
+	
+	void guardar() const;
+};
+
+#endif
+
+controladores/ControladorEmpleados.cpp
+#include "controladores/ControladorEmpleados.h"
+#include <stdexcept>
+
+ControladorEmpleados::ControladorEmpleados(
+	IAlmacenamientoEmpleados& almacenamiento,
+	const FabricaEmpleado& fabrica,
+	const ControladorDepartamentos& departamentos)
+
+	: almacenamiento(almacenamiento),
+	  fabrica(fabrica),
+	  departamentos(departamentos) {
+
+	this->almacenamiento.cargarEmpleados(empleados);
+}
+
+void ControladorEmpleados::validarAsignacion(
+	const std::string& idDepartamento,
+	const std::string& codigoPuesto) const {
+
+	if (idDepartamento.empty()) {
+		if (!codigoPuesto.empty()) {
+			throw std::invalid_argument(
+				"No se puede asignar un puesto sin departamento.");
+		}
+
+		return;
+	}
+
+	if (departamentos.buscar(idDepartamento) == nullptr) {
+		throw std::invalid_argument(
+			"No existe un departamento con el codigo " +
+			idDepartamento + ".");
+	}
+
+	if (!codigoPuesto.empty() &&
+		!departamentos.existePuesto(idDepartamento, codigoPuesto)) {
+
+		throw std::invalid_argument(
+			"No existe el puesto " + codigoPuesto +
+			" en el departamento " + idDepartamento + ".");
+	}
+}
+
+Empleado* ControladorEmpleados::registrar(const DatosEmpleado& datos) {
+	if (buscar(datos.identificacion) != nullptr) {
+		throw std::invalid_argument(
+			"Ya existe un empleado con la identificacion " +
+			datos.identificacion + ".");
+	}
+
+	validarAsignacion(datos.idDepartamento, datos.codigoPuesto);
+
+	Empleado* empleado = fabrica.crear(datos);
+	empleados.agregar(empleado);
+	guardar();
+
+	return empleado;
+}
+
+Empleado* ControladorEmpleados::buscar(
+	const std::string& identificacion) const {
+
+	return empleados.buscar([&](const Empleado* e) {
+		return e->getIdentificacion() == identificacion;
+	});
+}
+
+void ControladorEmpleados::eliminar(const std::string& identificacion) {
+	Empleado* empleado = buscar(identificacion);
+
+	if (empleado == nullptr) {
+		throw std::invalid_argument(
+			"No existe un empleado con la identificacion " +
+			identificacion + ".");
+	}
+
+	empleados.eliminar(empleado);
+	guardar();
+}
+
+void ControladorEmpleados::asignarPuesto(
+	const std::string& identificacion,
+	const std::string& idDepartamento,
+	const std::string& codigoPuesto) {
+
+	Empleado* empleado = buscar(identificacion);
+
+	if (empleado == nullptr) {
+		throw std::invalid_argument(
+			"No existe un empleado con la identificacion " +
+			identificacion + ".");
+	}
+
+	validarAsignacion(idDepartamento, codigoPuesto);
+
+	empleado->setIdDepartamento(idDepartamento);
+	empleado->setCodigoPuesto(codigoPuesto);
+	guardar();
+}
+
+void ControladorEmpleados::desasignarDepartamento(
+	const std::string& idDepartamento) {
+
+	bool huboCambios = false;
+
+	for (Nodo<Empleado>* nodo = empleados.primero();
+		 nodo != nullptr;
+		 nodo = nodo->getSiguiente()) {
+
+		Empleado* empleado = nodo->getDato();
+
+		if (empleado->getIdDepartamento() == idDepartamento) {
+			empleado->setIdDepartamento("");
+			empleado->setCodigoPuesto("");
+			huboCambios = true;
+		}
+	}
+
+	if (huboCambios) {
+		guardar();
+	}
+}
+
+void ControladorEmpleados::desasignarPuesto(
+	const std::string& idDepartamento,
+	const std::string& codigoPuesto) {
+
+	bool huboCambios = false;
+
+	for (Nodo<Empleado>* nodo = empleados.primero();
+		 nodo != nullptr;
+		 nodo = nodo->getSiguiente()) {
+
+		Empleado* empleado = nodo->getDato();
+
+		if (empleado->getIdDepartamento() == idDepartamento &&
+			empleado->getCodigoPuesto() == codigoPuesto) {
+
+			empleado->setCodigoPuesto("");
+			huboCambios = true;
+		}
+	}
+
+	if (huboCambios) {
+		guardar();
+	}
+}
+
+int ControladorEmpleados::contarPorDepartamento(
+	const std::string& idDepartamento) const {
+
+	int cantidad = 0;
+
+	for (Nodo<Empleado>* nodo = empleados.primero();
+		 nodo != nullptr;
+		 nodo = nodo->getSiguiente()) {
+
+		if (nodo->getDato()->getIdDepartamento() == idDepartamento) {
+			++cantidad;
+		}
+	}
+
+	return cantidad;
+}
+
+const Lista<Empleado>& ControladorEmpleados::getEmpleados() const {
+	return empleados;
+}
+
+void ControladorEmpleados::guardar() const {
+	almacenamiento.guardarEmpleados(empleados);
+}
+
+controladores/ServicioPlanilla.h
+#ifndef SERVICIOPLANILLA_H
+#define SERVICIOPLANILLA_H
+
+#include "colecciones/Lista.h"
+#include "controladores/ControladorDepartamentos.h"
+#include "controladores/ControladorEmpleados.h"
+#include "modelo/ComprobantePago.h"
+#include "persistencia/IAlmacenamientoComprobantes.h"
+#include <string>
+
+
+class ServicioPlanilla {
+private:
+	IAlmacenamientoComprobantes& almacenamiento;
+	const ControladorEmpleados& empleados;
+	const ControladorDepartamentos& departamentos;
+	Lista<ComprobantePago> comprobantes;
+
+	int siguienteNumero() const;
+	bool existeComprobante(
+		const std::string& idEmpleado, const std::string& periodo) const;
+
+	ComprobantePago* emitir(
+		const Empleado* empleado, const std::string& periodo);
+
+	static void validarPeriodo(const std::string& periodo);
+	static std::string fechaActual();
+
+public:
+	
+	ServicioPlanilla(
+		IAlmacenamientoComprobantes& almacenamiento,
+		const ControladorEmpleados& empleados,
+		const ControladorDepartamentos& departamentos);
+
+	ServicioPlanilla(const ServicioPlanilla&) = delete;
+	ServicioPlanilla& operator=(const ServicioPlanilla&) = delete;
+
+	
+	ComprobantePago* generarComprobante(
+		const std::string& idEmpleado, const std::string& periodo);
+
+	
+	int generarPlanilla(const std::string& periodo);
+
+	void procesarPago(int numeroComprobante);
+
+	
+	int procesarPagosPeriodo(const std::string& periodo);
+
+	ComprobantePago* buscarComprobante(int numero) const;
+
+	int contarComprobantes(const std::string& periodo) const;
+	double calcularTotalBruto(const std::string& periodo) const;
+	double calcularTotalDeducciones(const std::string& periodo) const;
+	double calcularTotalNeto(const std::string& periodo) const;
+
+	
+	void desvincularEmpleado(const std::string& idEmpleado);
+	void desvincularDepartamento(const std::string& codigoDepartamento);
+
+	const Lista<ComprobantePago>& getComprobantes() const;
+
+	void guardar() const;
+};
+
+#endif
+
+controladores/ServicioPlanilla.cpp
+#include "controladores/ServicioPlanilla.h"
+#include <cctype>
+#include <ctime>
+#include <stdexcept>
+
+ServicioPlanilla::ServicioPlanilla(
+	IAlmacenamientoComprobantes& almacenamiento,
+	const ControladorEmpleados& empleados,
+	const ControladorDepartamentos& departamentos)
+
+	: almacenamiento(almacenamiento),
+	  empleados(empleados),
+	  departamentos(departamentos) {
+
+	this->almacenamiento.cargarComprobantes(
+		comprobantes,
+		empleados.getEmpleados(),
+		departamentos.getDepartamentos());
+}
+
+void ServicioPlanilla::validarPeriodo(const std::string& periodo) {
+	bool valido = periodo.size() == 7 && periodo[4] == '-';
+
+	for (std::size_t i = 0; valido && i < periodo.size(); ++i) {
+		if (i != 4 &&
+			!std::isdigit(static_cast<unsigned char>(periodo[i]))) {
+
+			valido = false;
+		}
+	}
+
+	if (valido) {
+		int mes = std::stoi(periodo.substr(5, 2));
+		valido = mes >= 1 && mes <= 12;
+	}
+
+	if (!valido) {
+		throw std::invalid_argument(
+			"El periodo debe tener el formato AAAA-MM (ejemplo: 2026-11).");
+	}
+}
+
+std::string ServicioPlanilla::fechaActual() {
+	std::time_t ahora = std::time(nullptr);
+	std::tm* local = std::localtime(&ahora);
+
+	if (local == nullptr) {
+		return "0000-00-00";
+	}
+
+	char buffer[16];
+	std::strftime(buffer, sizeof(buffer), "%Y-%m-%d", local);
+
+	return buffer;
+}
+
+int ServicioPlanilla::siguienteNumero() const {
+	int mayor = 0;
+
+	for (Nodo<ComprobantePago>* nodo = comprobantes.primero();
+		 nodo != nullptr;
+		 nodo = nodo->getSiguiente()) {
+
+		if (nodo->getDato()->getNumero() > mayor) {
+			mayor = nodo->getDato()->getNumero();
+		}
+	}
+
+	return mayor + 1;
+}
+
+bool ServicioPlanilla::existeComprobante(
+	const std::string& idEmpleado, const std::string& periodo) const {
+
+	return comprobantes.buscar([&](const ComprobantePago* c) {
+		return c->getIdEmpleado() == idEmpleado &&
+			   c->getPeriodo() == periodo;
+	}) != nullptr;
+}
+
+ComprobantePago* ServicioPlanilla::emitir(
+	const Empleado* empleado, const std::string& periodo) {
+
+	const Departamento* departamento = nullptr;
+
+	if (!empleado->getIdDepartamento().empty()) {
+		departamento = departamentos.buscar(empleado->getIdDepartamento());
+	}
+
+	ComprobantePago* comprobante = new ComprobantePago(
+		siguienteNumero(),
+		periodo,
+		fechaActual(),
+		empleado,
+		departamento);
+
+	comprobantes.agregar(comprobante);
+
+	return comprobante;
+}
+
+ComprobantePago* ServicioPlanilla::generarComprobante(
+	const std::string& idEmpleado, const std::string& periodo) {
+
+	validarPeriodo(periodo);
+
+	const Empleado* empleado = empleados.buscar(idEmpleado);
+
+	if (empleado == nullptr) {
+		throw std::invalid_argument(
+			"No existe un empleado con la identificacion " +
+			idEmpleado + ".");
+	}
+
+	if (existeComprobante(idEmpleado, periodo)) {
+		throw std::logic_error(
+			"El empleado " + idEmpleado +
+			" ya tiene un comprobante en el periodo " + periodo + ".");
+	}
+
+	ComprobantePago* comprobante = emitir(empleado, periodo);
+	guardar();
+
+	return comprobante;
+}
+
+int ServicioPlanilla::generarPlanilla(const std::string& periodo) {
+	validarPeriodo(periodo);
+
+	int generados = 0;
+
+	for (Nodo<Empleado>* nodo = empleados.getEmpleados().primero();
+		 nodo != nullptr;
+		 nodo = nodo->getSiguiente()) {
+
+		const Empleado* empleado = nodo->getDato();
+
+		if (!existeComprobante(empleado->getIdentificacion(), periodo)) {
+			emitir(empleado, periodo);
+			++generados;
+		}
+	}
+
+	if (generados > 0) {
+		guardar();
+	}
+
+	return generados;
+}
+
+void ServicioPlanilla::procesarPago(int numeroComprobante) {
+	ComprobantePago* comprobante = buscarComprobante(numeroComprobante);
+
+	if (comprobante == nullptr) {
+		throw std::invalid_argument(
+			"No existe el comprobante numero " +
+			std::to_string(numeroComprobante) + ".");
+	}
+
+	comprobante->marcarPagado(fechaActual());
+	guardar();
+}
+
+int ServicioPlanilla::procesarPagosPeriodo(const std::string& periodo) {
+	validarPeriodo(periodo);
+
+	int pagados = 0;
+	const std::string fecha = fechaActual();
+
+	for (Nodo<ComprobantePago>* nodo = comprobantes.primero();
+		 nodo != nullptr;
+		 nodo = nodo->getSiguiente()) {
+
+		ComprobantePago* comprobante = nodo->getDato();
+
+		if (comprobante->getPeriodo() == periodo &&
+			!comprobante->estaPagado()) {
+
+			comprobante->marcarPagado(fecha);
+			++pagados;
+		}
+	}
+
+	if (pagados > 0) {
+		guardar();
+	}
+
+	return pagados;
+}
+
+ComprobantePago* ServicioPlanilla::buscarComprobante(int numero) const {
+	return comprobantes.buscar([&](const ComprobantePago* c) {
+		return c->getNumero() == numero;
+	});
+}
+
+int ServicioPlanilla::contarComprobantes(const std::string& periodo) const {
+	int cantidad = 0;
+
+	for (Nodo<ComprobantePago>* nodo = comprobantes.primero();
+		 nodo != nullptr;
+		 nodo = nodo->getSiguiente()) {
+
+		if (nodo->getDato()->getPeriodo() == periodo) {
+			++cantidad;
+		}
+	}
+
+	return cantidad;
+}
+
+double ServicioPlanilla::calcularTotalBruto(
+	const std::string& periodo) const {
+
+	double total = 0.0;
+
+	for (Nodo<ComprobantePago>* nodo = comprobantes.primero();
+		 nodo != nullptr;
+		 nodo = nodo->getSiguiente()) {
+
+		if (nodo->getDato()->getPeriodo() == periodo) {
+			total += nodo->getDato()->getDesglose().salarioBruto;
+		}
+	}
+
+	return total;
+}
+
+double ServicioPlanilla::calcularTotalDeducciones(
+	const std::string& periodo) const {
+
+	double total = 0.0;
+
+	for (Nodo<ComprobantePago>* nodo = comprobantes.primero();
+		 nodo != nullptr;
+		 nodo = nodo->getSiguiente()) {
+
+		if (nodo->getDato()->getPeriodo() == periodo) {
+			total += nodo->getDato()->getDesglose().deduccionLegal;
+		}
+	}
+
+	return total;
+}
+
+double ServicioPlanilla::calcularTotalNeto(
+	const std::string& periodo) const {
+
+	double total = 0.0;
+
+	for (Nodo<ComprobantePago>* nodo = comprobantes.primero();
+		 nodo != nullptr;
+		 nodo = nodo->getSiguiente()) {
+
+		if (nodo->getDato()->getPeriodo() == periodo) {
+			total += nodo->getDato()->getDesglose().salarioNeto;
+		}
+	}
+
+	return total;
+}
+
+void ServicioPlanilla::desvincularEmpleado(const std::string& idEmpleado) {
+	for (Nodo<ComprobantePago>* nodo = comprobantes.primero();
+		 nodo != nullptr;
+		 nodo = nodo->getSiguiente()) {
+
+		if (nodo->getDato()->getIdEmpleado() == idEmpleado) {
+			nodo->getDato()->desvincularEmpleado();
+		}
+	}
+}
+
+void ServicioPlanilla::desvincularDepartamento(
+	const std::string& codigoDepartamento) {
+
+	for (Nodo<ComprobantePago>* nodo = comprobantes.primero();
+		 nodo != nullptr;
+		 nodo = nodo->getSiguiente()) {
+
+		if (nodo->getDato()->getCodigoDepartamento() == codigoDepartamento) {
+			nodo->getDato()->desvincularDepartamento();
+		}
+	}
+}
+
+const Lista<ComprobantePago>& ServicioPlanilla::getComprobantes() const {
+	return comprobantes;
+}
+
+void ServicioPlanilla::guardar() const {
+	almacenamiento.guardarComprobantes(comprobantes);
+}
+
+vista/EntradaConsola.h
+#ifndef ENTRADACONSOLA_H
+#define ENTRADACONSOLA_H
+
+#include <stdexcept>
+#include <string>
+
+
+class EntradaFinalizada : public std::runtime_error {
+public:
+	EntradaFinalizada()
+		: std::runtime_error("Se cerro la entrada estandar.") {}
+};
+
+
+class EntradaConsola {
+private:
+	static std::string leerLinea(const std::string& mensaje);
+
+public:
+	static std::string leerTexto(
+		const std::string& mensaje, bool permitirVacio = false);
+
+	static int leerEntero(
+		const std::string& mensaje, int minimo, int maximo = 1000000);
+
+	static double leerDecimal(
+		const std::string& mensaje,
+		double minimo = 0.0,
+		double maximo = 1000000000000.0);
+
+	static bool confirmar(const std::string& mensaje);
+
+	
+	static std::string leerPeriodo(const std::string& mensaje);
+
+	static void pausar();
+};
+
+#endif
+
+vista/EntradaConsola.cpp
+#include "vista/EntradaConsola.h"
+#include <cctype>
+#include <iostream>
+#include <locale>
+#include <sstream>
+
+namespace {
+
+	std::string recortar(const std::string& texto) {
+		std::size_t inicio = 0;
+		std::size_t fin = texto.size();
+
+		while (inicio < fin &&
+			   std::isspace(static_cast<unsigned char>(texto[inicio]))) {
+			++inicio;
+		}
+
+		while (fin > inicio &&
+			   std::isspace(static_cast<unsigned char>(texto[fin - 1]))) {
+			--fin;
+		}
+
+		return texto.substr(inicio, fin - inicio);
+	}
+
+	bool esPeriodoValido(const std::string& periodo) {
+		if (periodo.size() != 7 || periodo[4] != '-') {
+			return false;
+		}
+
+		for (std::size_t i = 0; i < periodo.size(); ++i) {
+			if (i != 4 &&
+				!std::isdigit(static_cast<unsigned char>(periodo[i]))) {
+				return false;
+			}
+		}
+
+		int mes = std::stoi(periodo.substr(5, 2));
+		return mes >= 1 && mes <= 12;
+	}
+
+}
+
+std::string EntradaConsola::leerLinea(const std::string& mensaje) {
+	std::cout << mensaje;
+
+	std::string linea;
+
+	if (!std::getline(std::cin, linea)) {
+		throw EntradaFinalizada();
+	}
+
+	return recortar(linea);
+}
+
+std::string EntradaConsola::leerTexto(
+	const std::string& mensaje, bool permitirVacio) {
+
+	while (true) {
+		std::string texto = leerLinea(mensaje);
+
+		if (texto.empty() && !permitirVacio) {
+			std::cout << "  Error: el valor no puede estar vacío.\n";
+			continue;
+		}
+
+		if (texto.find('|') != std::string::npos) {
+			std::cout << "  Error: el carácter '|' no está permitido.\n";
+			continue;
+		}
+
+		return texto;
+	}
+}
+
+int EntradaConsola::leerEntero(
+	const std::string& mensaje, int minimo, int maximo) {
+
+	while (true) {
+		std::string texto = leerLinea(mensaje);
+		std::size_t posicion = 0;
+		int valor = 0;
+
+		try {
+			valor = std::stoi(texto, &posicion);
+		} catch (const std::exception&) {
+			std::cout << "  Error: debe ingresar un número entero.\n";
+			continue;
+		}
+
+		if (posicion != texto.size()) {
+			std::cout << "  Error: debe ingresar un número entero.\n";
+			continue;
+		}
+
+		if (valor < minimo || valor > maximo) {
+			std::cout << "  Error: el valor debe estar entre "
+					  << minimo << " y " << maximo << ".\n";
+			continue;
+		}
+
+		return valor;
+	}
+}
+
+double EntradaConsola::leerDecimal(
+	const std::string& mensaje, double minimo, double maximo) {
+
+	while (true) {
+		std::string texto = leerLinea(mensaje);
+
+		
+		for (char& c : texto) {
+			if (c == ',') {
+				c = '.';
+			}
+		}
+
+		std::istringstream flujo(texto);
+		flujo.imbue(std::locale::classic());
+
+		double valor = 0.0;
+		flujo >> valor;
+
+		if (flujo.fail()) {
+			std::cout << "  Error: debe ingresar un número.\n";
+			continue;
+		}
+
+		flujo >> std::ws;
+
+		if (!flujo.eof()) {
+			std::cout << "  Error: debe ingresar un número.\n";
+			continue;
+		}
+
+		if (valor < minimo || valor > maximo) {
+			std::cout << "  Error: el valor debe estar entre "
+					  << minimo << " y " << maximo << ".\n";
+			continue;
+		}
+
+		return valor;
+	}
+}
+
+bool EntradaConsola::confirmar(const std::string& mensaje) {
+	while (true) {
+		std::string texto = leerLinea(mensaje + " (s/n): ");
+
+		for (char& c : texto) {
+			c = static_cast<char>(
+				std::tolower(static_cast<unsigned char>(c)));
+		}
+
+		if (texto == "s" || texto == "si") {
+			return true;
+		}
+
+		if (texto == "n" || texto == "no") {
+			return false;
+		}
+
+		std::cout << "  Error: responda 's' o 'n'.\n";
+	}
+}
+
+std::string EntradaConsola::leerPeriodo(const std::string& mensaje) {
+	while (true) {
+		std::string texto = leerLinea(mensaje);
+
+		if (esPeriodoValido(texto)) {
+			return texto;
+		}
+
+		std::cout << "  Error: use el formato AAAA-MM (ejemplo: 2026-11).\n";
+	}
+}
+
+void EntradaConsola::pausar() {
+	leerLinea("\nPresione Enter para continuar...");
+}
+
+vista/InterfazConsola.h
+#ifndef INTERFAZCONSOLA_H
+#define INTERFAZCONSOLA_H
+
+#include "controladores/ControladorDepartamentos.h"
+#include "controladores/ControladorEmpleados.h"
+#include "controladores/ServicioPlanilla.h"
+#include "modelo/ComprobantePago.h"
+#include "modelo/Empleado.h"
+#include "modelo/FabricaEmpleado.h"
+#include <functional>
+
+
+class InterfazConsola {
+private:
+	ControladorEmpleados& empleados;
+	ControladorDepartamentos& departamentos;
+	ServicioPlanilla& planilla;
+	const FabricaEmpleado& fabrica;
+
+	
+	void ejecutarSeguro(const std::function<void()>& accion);
+
+	void menuEmpleados();
+	void menuDepartamentos();
+	void menuPlanilla();
+
+	
+	void registrarEmpleado();
+	void listarEmpleados() const;
+	void verDetalleEmpleado();
+	void modificarEmpleado();
+	void asignarPuestoEmpleado();
+	void eliminarEmpleado();
+
+	
+	void crearDepartamento();
+	void listarDepartamentos() const;
+	void agregarPuesto();
+	void eliminarPuesto();
+	void eliminarDepartamento();
+
+	
+	void generarComprobanteIndividual();
+	void generarPlanillaPeriodo();
+	void listarComprobantes() const;
+	void verComprobante();
+	void procesarPagoIndividual();
+	void procesarPagosDelPeriodo();
+	void mostrarResumenPeriodo();
+
+	
+	void mostrarEmpleado(const Empleado* empleado) const;
+	void mostrarComprobante(const ComprobantePago* comprobante) const;
+	Empleado* solicitarEmpleadoExistente();
+
+public:
+	InterfazConsola(
+		ControladorEmpleados& empleados,
+		ControladorDepartamentos& departamentos,
+		ServicioPlanilla& planilla,
+		const FabricaEmpleado& fabrica);
+
+	InterfazConsola(const InterfazConsola&) = delete;
+	InterfazConsola& operator=(const InterfazConsola&) = delete;
+
+	
+	void ejecutar();
+};
+
+#endif
+
+vista/InterfazConsola.cpp
+#include "vista/InterfazConsola.h"
+#include "vista/EntradaConsola.h"
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+
+namespace {
+
+	std::string formatearMonto(double valor) {
+		std::ostringstream flujo;
+		flujo << std::fixed << std::setprecision(2) << valor;
+		return flujo.str();
+	}
+
+	void mostrarTitulo(const std::string& texto) {
+		std::cout << "\n=== " << texto << " ===\n";
+	}
+
+	std::string textoOSinAsignar(const std::string& valor) {
+		return valor.empty() ? "Sin asignar" : valor;
+	}
+
+}
+
+InterfazConsola::InterfazConsola(
+	ControladorEmpleados& empleados,
+	ControladorDepartamentos& departamentos,
+	ServicioPlanilla& planilla,
+	const FabricaEmpleado& fabrica)
+
+	: empleados(empleados),
+	  departamentos(departamentos),
+	  planilla(planilla),
+	  fabrica(fabrica) {}
+
+void InterfazConsola::ejecutarSeguro(const std::function<void()>& accion) {
+	try {
+		accion();
+	} catch (const EntradaFinalizada&) {
+		throw;
+	} catch (const std::exception& e) {
+		std::cout << "\n  Error: " << e.what() << "\n";
+	}
+
+	EntradaConsola::pausar();
+}
+
+
+
+void InterfazConsola::ejecutar() {
+	try {
+		bool salir = false;
+
+		while (!salir) {
+			mostrarTitulo("SISTEMA DE PLANILLA HOSPITALARIA");
+			std::cout << "  1. Gestión de empleados\n"
+					  << "  2. Departamentos y puestos\n"
+					  << "  3. Planilla y pagos\n"
+					  << "  0. Salir\n";
+
+			int opcion = EntradaConsola::leerEntero("Opción: ", 0, 3);
+
+			switch (opcion) {
+				case 1: menuEmpleados(); break;
+				case 2: menuDepartamentos(); break;
+				case 3: menuPlanilla(); break;
+				case 0: salir = true; break;
+			}
+		}
+
+		std::cout << "\nLos datos están guardados. ¡Hasta pronto!\n";
+	} catch (const EntradaFinalizada&) {
+		std::cout << "\n\nEntrada finalizada. Saliendo del sistema...\n";
+	}
+}
+
+void InterfazConsola::menuEmpleados() {
+	bool volver = false;
+
+	while (!volver) {
+		mostrarTitulo("GESTIÓN DE EMPLEADOS");
+		std::cout << "  1. Registrar empleado\n"
+				  << "  2. Listar empleados\n"
+				  << "  3. Ver detalle y desglose salarial\n"
+				  << "  4. Modificar empleado\n"
+				  << "  5. Asignar departamento y puesto\n"
+				  << "  6. Eliminar empleado\n"
+				  << "  0. Volver\n";
+
+		int opcion = EntradaConsola::leerEntero("Opción: ", 0, 6);
+
+		switch (opcion) {
+			case 1: ejecutarSeguro([this] { registrarEmpleado(); }); break;
+			case 2: ejecutarSeguro([this] { listarEmpleados(); }); break;
+			case 3: ejecutarSeguro([this] { verDetalleEmpleado(); }); break;
+			case 4: ejecutarSeguro([this] { modificarEmpleado(); }); break;
+			case 5: ejecutarSeguro([this] { asignarPuestoEmpleado(); }); break;
+			case 6: ejecutarSeguro([this] { eliminarEmpleado(); }); break;
+			case 0: volver = true; break;
+		}
+	}
+}
+
+void InterfazConsola::menuDepartamentos() {
+	bool volver = false;
+
+	while (!volver) {
+		mostrarTitulo("DEPARTAMENTOS Y PUESTOS");
+		std::cout << "  1. Crear departamento\n"
+				  << "  2. Listar departamentos y puestos\n"
+				  << "  3. Agregar puesto a un departamento\n"
+				  << "  4. Eliminar puesto\n"
+				  << "  5. Eliminar departamento\n"
+				  << "  0. Volver\n";
+
+		int opcion = EntradaConsola::leerEntero("Opción: ", 0, 5);
+
+		switch (opcion) {
+			case 1: ejecutarSeguro([this] { crearDepartamento(); }); break;
+			case 2: ejecutarSeguro([this] { listarDepartamentos(); }); break;
+			case 3: ejecutarSeguro([this] { agregarPuesto(); }); break;
+			case 4: ejecutarSeguro([this] { eliminarPuesto(); }); break;
+			case 5: ejecutarSeguro([this] { eliminarDepartamento(); }); break;
+			case 0: volver = true; break;
+		}
+	}
+}
+
+void InterfazConsola::menuPlanilla() {
+	bool volver = false;
+
+	while (!volver) {
+		mostrarTitulo("PLANILLA Y PAGOS");
+		std::cout << "  1. Generar comprobante de un empleado\n"
+				  << "  2. Generar planilla completa de un período\n"
+				  << "  3. Listar comprobantes\n"
+				  << "  4. Ver un comprobante\n"
+				  << "  5. Procesar pago de un comprobante\n"
+				  << "  6. Procesar todos los pagos de un período\n"
+				  << "  7. Resumen de un período\n"
+				  << "  0. Volver\n";
+
+		int opcion = EntradaConsola::leerEntero("Opción: ", 0, 7);
+
+		switch (opcion) {
+			case 1: ejecutarSeguro([this] { generarComprobanteIndividual(); }); break;
+			case 2: ejecutarSeguro([this] { generarPlanillaPeriodo(); }); break;
+			case 3: ejecutarSeguro([this] { listarComprobantes(); }); break;
+			case 4: ejecutarSeguro([this] { verComprobante(); }); break;
+			case 5: ejecutarSeguro([this] { procesarPagoIndividual(); }); break;
+			case 6: ejecutarSeguro([this] { procesarPagosDelPeriodo(); }); break;
+			case 7: ejecutarSeguro([this] { mostrarResumenPeriodo(); }); break;
+			case 0: volver = true; break;
+		}
+	}
+}
+
+
+
+Empleado* InterfazConsola::solicitarEmpleadoExistente() {
+	std::string id = EntradaConsola::leerTexto("Identificación del empleado: ");
+	Empleado* empleado = empleados.buscar(id);
+
+	if (empleado == nullptr) {
+		throw std::invalid_argument(
+			"No existe un empleado con la identificacion " + id + ".");
+	}
+
+	return empleado;
+}
+
+void InterfazConsola::registrarEmpleado() {
+	mostrarTitulo("Registrar empleado");
+
+	const Lista<RegistroCreador>& registros = fabrica.getRegistros();
+
+	std::cout << "Tipos de empleado disponibles:\n";
+
+	int numero = 1;
+
+	for (Nodo<RegistroCreador>* nodo = registros.primero();
+		 nodo != nullptr;
+		 nodo = nodo->getSiguiente()) {
+
+		std::cout << "  " << numero << ". " << nodo->getDato()->tipo << "\n";
+		++numero;
+	}
+
+	int eleccion = EntradaConsola::leerEntero(
+		"Seleccione el tipo: ", 1, registros.getTamano());
+
+	const RegistroCreador* registro = registros.obtener(eleccion - 1);
+
+	DatosEmpleado datos;
+	datos.tipo = registro->tipo;
+
+	datos.identificacion = EntradaConsola::leerTexto("Identificación: ");
+	datos.nombre = EntradaConsola::leerTexto("Nombre completo: ");
+
+	datos.salarioBase = EntradaConsola::leerDecimal("Salario base: ");
+	datos.horasExtra = EntradaConsola::leerDecimal("Horas extra del período: ");
+	datos.valorHoraExtra = EntradaConsola::leerDecimal("Valor por hora extra: ");
+
+	datos.turnosNocturnos = EntradaConsola::leerEntero(
+		"Cantidad de turnos nocturnos: ", 0);
+	datos.bonificacionTurnoNocturno = EntradaConsola::leerDecimal(
+		"Bonificación por turno nocturno: ");
+
+	datos.guardias = EntradaConsola::leerEntero("Cantidad de guardias: ", 0);
+	datos.bonificacionGuardia = EntradaConsola::leerDecimal(
+		"Bonificación por guardia: ");
+
+	datos.tasaDeduccionLegal = EntradaConsola::leerDecimal(
+		"Tasa de deducción de ley en % (0-100): ", 0.0, 100.0) / 100.0;
+
+	datos.detallePuesto = EntradaConsola::leerTexto(
+		registro->etiquetaDetalle + ": ");
+	datos.bonificacionPuesto = EntradaConsola::leerDecimal(
+		"Bonificación del puesto (" + registro->etiquetaDetalle + "): ");
+
+	if (EntradaConsola::confirmar("¿Desea asignarlo a un departamento ahora?")) {
+		listarDepartamentos();
+
+		datos.idDepartamento = EntradaConsola::leerTexto(
+			"Código del departamento: ");
+
+		if (EntradaConsola::confirmar("¿Desea asignarle un puesto?")) {
+			datos.codigoPuesto = EntradaConsola::leerTexto("Código del puesto: ");
+		}
+	}
+
+	Empleado* empleado = empleados.registrar(datos);
+
+	std::cout << "\n  Empleado registrado: " << empleado->getNombre()
+			  << " (" << empleado->obtenerTipo() << ")\n";
+}
+
+void InterfazConsola::listarEmpleados() const {
+	mostrarTitulo("Listado de empleados");
+
+	const Lista<Empleado>& lista = empleados.getEmpleados();
+
+	if (lista.estaVacia()) {
+		std::cout << "  No hay empleados registrados.\n";
+		return;
+	}
+
+	std::cout << std::left
+			  << std::setw(14) << "ID"
+			  << std::setw(16) << "Tipo"
+			  << std::setw(14) << "Departamento"
+			  << std::setw(14) << "Salario neto"
+			  << "Nombre\n";
+
+	for (Nodo<Empleado>* nodo = lista.primero();
+		 nodo != nullptr;
+		 nodo = nodo->getSiguiente()) {
+
+		const Empleado* e = nodo->getDato();
+
+		std::cout << std::left
+				  << std::setw(14) << e->getIdentificacion()
+				  << std::setw(16) << e->obtenerTipo()
+				  << std::setw(14) << textoOSinAsignar(e->getIdDepartamento())
+				  << std::setw(14) << formatearMonto(e->calcularSalarioNeto())
+				  << e->getNombre() << "\n";
+	}
+
+	std::cout << "\n  Total: " << lista.getTamano() << " empleado(s).\n";
+}
+
+void InterfazConsola::mostrarEmpleado(const Empleado* e) const {
+	const std::string etiqueta = fabrica.obtenerEtiquetaDetalle(e->obtenerTipo());
+
+	std::string nombreDepartamento = "Sin asignar";
+
+	if (!e->getIdDepartamento().empty()) {
+		const Departamento* d = departamentos.buscar(e->getIdDepartamento());
+
+		nombreDepartamento = e->getIdDepartamento();
+
+		if (d != nullptr) {
+			nombreDepartamento += " - " + d->getNombre();
+		}
+	}
+
+	std::cout << "\n  Tipo:            " << e->obtenerTipo()
+			  << "\n  Identificación:  " << e->getIdentificacion()
+			  << "\n  Nombre:          " << e->getNombre()
+			  << "\n  " << etiqueta << ": " << e->obtenerDetallePuesto()
+			  << "\n  Departamento:    " << nombreDepartamento
+			  << "\n  Puesto:          " << textoOSinAsignar(e->getCodigoPuesto())
+			  << "\n";
+
+	std::cout << "\n  --- Desglose salarial ---"
+			  << "\n  Salario base:                 " << formatearMonto(e->getSalarioBase())
+			  << "\n  Horas extra (" << e->getHorasExtra() << " x "
+			  << formatearMonto(e->getValorHoraExtra()) << "):  "
+			  << formatearMonto(e->calcularPagoHorasExtra())
+			  << "\n  Turnos nocturnos (" << e->getTurnosNocturnos() << " x "
+			  << formatearMonto(e->getBonificacionTurnoNocturno()) << "):  "
+			  << formatearMonto(e->calcularBonificacionNocturna())
+			  << "\n  Guardias (" << e->getGuardias() << " x "
+			  << formatearMonto(e->getBonificacionGuardia()) << "):  "
+			  << formatearMonto(e->calcularBonificacionGuardias())
+			  << "\n  Bonificación del puesto:      "
+			  << formatearMonto(e->calcularBonificacionPuesto())
+			  << "\n  Salario bruto:                " << formatearMonto(e->calcularSalarioBruto())
+			  << "\n  Deducción de ley ("
+			  << formatearMonto(e->getTasaDeduccionLegal() * 100.0) << "%):  "
+			  << formatearMonto(e->calcularDeduccionLegal())
+			  << "\n  SALARIO NETO:                 " << formatearMonto(e->calcularSalarioNeto())
+			  << "\n";
+}
+
+void InterfazConsola::verDetalleEmpleado() {
+	mostrarTitulo("Detalle de empleado");
+	mostrarEmpleado(solicitarEmpleadoExistente());
+}
+
+void InterfazConsola::modificarEmpleado() {
+	mostrarTitulo("Modificar empleado");
+
+	Empleado* e = solicitarEmpleadoExistente();
+	mostrarEmpleado(e);
+
+	const std::string etiqueta = fabrica.obtenerEtiquetaDetalle(e->obtenerTipo());
+
+	std::cout << "\nCampos modificables:\n"
+			  << "   1. Nombre\n"
+			  << "   2. Salario base\n"
+			  << "   3. Horas extra\n"
+			  << "   4. Valor por hora extra\n"
+			  << "   5. Turnos nocturnos\n"
+			  << "   6. Bonificación por turno nocturno\n"
+			  << "   7. Guardias\n"
+			  << "   8. Bonificación por guardia\n"
+			  << "   9. Tasa de deducción de ley\n"
+			  << "  10. " << etiqueta << "\n"
+			  << "  11. Bonificación del puesto\n"
+			  << "   0. Cancelar\n";
+
+	int campo = EntradaConsola::leerEntero("Campo a modificar: ", 0, 11);
+
+	switch (campo) {
+		case 1:
+			e->setNombre(EntradaConsola::leerTexto("Nuevo nombre: "));
+			break;
+		case 2:
+			e->setSalarioBase(EntradaConsola::leerDecimal("Nuevo salario base: "));
+			break;
+		case 3:
+			e->setHorasExtra(EntradaConsola::leerDecimal("Nuevas horas extra: "));
+			break;
+		case 4:
+			e->setValorHoraExtra(EntradaConsola::leerDecimal("Nuevo valor por hora extra: "));
+			break;
+		case 5:
+			e->setTurnosNocturnos(EntradaConsola::leerEntero("Nuevos turnos nocturnos: ", 0));
+			break;
+		case 6:
+			e->setBonificacionTurnoNocturno(EntradaConsola::leerDecimal("Nueva bonificación nocturna: "));
+			break;
+		case 7:
+			e->setGuardias(EntradaConsola::leerEntero("Nueva cantidad de guardias: ", 0));
+			break;
+		case 8:
+			e->setBonificacionGuardia(EntradaConsola::leerDecimal("Nueva bonificación por guardia: "));
+			break;
+		case 9:
+			e->setTasaDeduccionLegal(
+				EntradaConsola::leerDecimal("Nueva tasa de deducción en % (0-100): ", 0.0, 100.0) / 100.0);
+			break;
+		case 10:
+			e->setDetallePuesto(EntradaConsola::leerTexto("Nuevo valor de " + etiqueta + ": "));
+			break;
+		case 11:
+			e->setBonificacionPuesto(EntradaConsola::leerDecimal("Nueva bonificación del puesto: "));
+			break;
+		case 0:
+			std::cout << "  Operación cancelada.\n";
+			return;
+	}
+
+	empleados.guardar();
+	std::cout << "\n  Empleado actualizado correctamente.\n";
+}
+
+void InterfazConsola::asignarPuestoEmpleado() {
+	mostrarTitulo("Asignar departamento y puesto");
+
+	Empleado* e = solicitarEmpleadoExistente();
+
+	listarDepartamentos();
+
+	std::string idDepartamento = EntradaConsola::leerTexto(
+		"Código del departamento (vacío para quitar la asignación): ", true);
+
+	std::string codigoPuesto;
+
+	if (!idDepartamento.empty()) {
+		codigoPuesto = EntradaConsola::leerTexto(
+			"Código del puesto (vacío para ninguno): ", true);
+	}
+
+	empleados.asignarPuesto(e->getIdentificacion(), idDepartamento, codigoPuesto);
+	std::cout << "\n  Asignación actualizada correctamente.\n";
+}
+
+void InterfazConsola::eliminarEmpleado() {
+	mostrarTitulo("Eliminar empleado");
+
+	Empleado* e = solicitarEmpleadoExistente();
+	mostrarEmpleado(e);
+
+	if (!EntradaConsola::confirmar("\n¿Seguro que desea eliminar a este empleado?")) {
+		std::cout << "  Operación cancelada.\n";
+		return;
+	}
+
+	
+	const std::string id = e->getIdentificacion();
+	planilla.desvincularEmpleado(id);
+	empleados.eliminar(id);
+
+	std::cout << "\n  Empleado eliminado. Sus comprobantes se conservan en el historial.\n";
+}
+
+
+
+void InterfazConsola::crearDepartamento() {
+	mostrarTitulo("Crear departamento");
+
+	std::string codigo = EntradaConsola::leerTexto("Código: ");
+	std::string nombre = EntradaConsola::leerTexto("Nombre: ");
+
+	departamentos.crear(codigo, nombre);
+	std::cout << "\n  Departamento creado correctamente.\n";
+}
+
+void InterfazConsola::listarDepartamentos() const {
+	mostrarTitulo("Departamentos y puestos");
+
+	const Lista<Departamento>& lista = departamentos.getDepartamentos();
+
+	if (lista.estaVacia()) {
+		std::cout << "  No hay departamentos registrados.\n";
+		return;
+	}
+
+	for (Nodo<Departamento>* nodo = lista.primero();
+		 nodo != nullptr;
+		 nodo = nodo->getSiguiente()) {
+
+		const Departamento* d = nodo->getDato();
+
+		std::cout << "\n  [" << d->getCodigo() << "] " << d->getNombre()
+				  << "  (" << empleados.contarPorDepartamento(d->getCodigo())
+				  << " empleado(s))\n";
+
+		const Lista<Puesto>& puestos = d->getPuestos();
+
+		if (puestos.estaVacia()) {
+			std::cout << "      (sin puestos)\n";
+		}
+
+		for (Nodo<Puesto>* np = puestos.primero();
+			 np != nullptr;
+			 np = np->getSiguiente()) {
+
+			std::cout << "      - " << np->getDato()->getCodigo()
+					  << ": " << np->getDato()->getNombre() << "\n";
+		}
+	}
+}
+
+void InterfazConsola::agregarPuesto() {
+	mostrarTitulo("Agregar puesto");
+
+	std::string codigoDepartamento = EntradaConsola::leerTexto("Código del departamento: ");
+	std::string codigoPuesto = EntradaConsola::leerTexto("Código del puesto: ");
+	std::string nombrePuesto = EntradaConsola::leerTexto("Nombre del puesto: ");
+
+	departamentos.agregarPuesto(codigoDepartamento, codigoPuesto, nombrePuesto);
+	std::cout << "\n  Puesto agregado correctamente.\n";
+}
+
+void InterfazConsola::eliminarPuesto() {
+	mostrarTitulo("Eliminar puesto");
+
+	std::string codigoDepartamento = EntradaConsola::leerTexto("Código del departamento: ");
+	std::string codigoPuesto = EntradaConsola::leerTexto("Código del puesto: ");
+
+	if (!EntradaConsola::confirmar("¿Seguro que desea eliminar el puesto?")) {
+		std::cout << "  Operación cancelada.\n";
+		return;
+	}
+
+	departamentos.eliminarPuesto(codigoDepartamento, codigoPuesto);
+	empleados.desasignarPuesto(codigoDepartamento, codigoPuesto);
+
+	std::cout << "\n  Puesto eliminado correctamente.\n";
+}
+
+void InterfazConsola::eliminarDepartamento() {
+	mostrarTitulo("Eliminar departamento");
+
+	std::string codigo = EntradaConsola::leerTexto("Código del departamento: ");
+	const Departamento* d = departamentos.buscar(codigo);
+
+	if (d == nullptr) {
+		throw std::invalid_argument(
+			"No existe un departamento con el codigo " + codigo + ".");
+	}
+
+	int asignados = empleados.contarPorDepartamento(codigo);
+
+	std::cout << "\n  Departamento: " << d->getNombre()
+			  << "\n  Empleados asignados que quedarán sin departamento: "
+			  << asignados << "\n";
+
+	if (!EntradaConsola::confirmar("\n¿Seguro que desea eliminarlo junto con sus puestos?")) {
+		std::cout << "  Operación cancelada.\n";
+		return;
+	}
+
+	planilla.desvincularDepartamento(codigo);
+	empleados.desasignarDepartamento(codigo);
+	departamentos.eliminar(codigo);
+
+	std::cout << "\n  Departamento eliminado correctamente.\n";
+}
+
+
+
+void InterfazConsola::generarComprobanteIndividual() {
+	mostrarTitulo("Generar comprobante");
+
+	Empleado* e = solicitarEmpleadoExistente();
+	std::string periodo = EntradaConsola::leerPeriodo("Período (AAAA-MM): ");
+
+	const ComprobantePago* comprobante =
+		planilla.generarComprobante(e->getIdentificacion(), periodo);
+
+	mostrarComprobante(comprobante);
+}
+
+void InterfazConsola::generarPlanillaPeriodo() {
+	mostrarTitulo("Generar planilla del período");
+
+	if (empleados.getEmpleados().estaVacia()) {
+		throw std::logic_error("No hay empleados registrados.");
+	}
+
+	std::string periodo = EntradaConsola::leerPeriodo("Período (AAAA-MM): ");
+	int generados = planilla.generarPlanilla(periodo);
+
+	std::cout << "\n  Comprobantes generados: " << generados << "\n";
+
+	if (generados == 0) {
+		std::cout << "  (Todos los empleados ya tenían comprobante en ese período.)\n";
+	}
+}
+
+void InterfazConsola::listarComprobantes() const {
+	mostrarTitulo("Comprobantes emitidos");
+
+	const Lista<ComprobantePago>& lista = planilla.getComprobantes();
+
+	if (lista.estaVacia()) {
+		std::cout << "  No hay comprobantes emitidos.\n";
+		return;
+	}
+
+	std::cout << std::left
+			  << std::setw(8) << "No."
+			  << std::setw(10) << "Período"
+			  << std::setw(14) << "Empleado"
+			  << std::setw(14) << "Neto"
+			  << std::setw(11) << "Estado"
+			  << "Nombre\n";
+
+	for (Nodo<ComprobantePago>* nodo = lista.primero();
+		 nodo != nullptr;
+		 nodo = nodo->getSiguiente()) {
+
+		const ComprobantePago* c = nodo->getDato();
+
+		std::cout << std::left
+				  << std::setw(8) << c->getNumero()
+				  << std::setw(10) << c->getPeriodo()
+				  << std::setw(14) << c->getIdEmpleado()
+				  << std::setw(14) << formatearMonto(c->getDesglose().salarioNeto)
+				  << std::setw(11) << (c->estaPagado() ? "Pagado" : "Pendiente")
+				  << c->getNombreEmpleado() << "\n";
+	}
+}
+
+void InterfazConsola::mostrarComprobante(const ComprobantePago* c) const {
+	const DesglosePago& d = c->getDesglose();
+
+	std::cout << "\n  ------------------------------------------"
+			  << "\n  COMPROBANTE DE PAGO No. " << c->getNumero()
+			  << "\n  ------------------------------------------"
+			  << "\n  Período:         " << c->getPeriodo()
+			  << "\n  Fecha emisión:   " << c->getFechaEmision()
+			  << "\n  Estado:          "
+			  << (c->estaPagado() ? "Pagado el " + c->getFechaPago() : "Pendiente de pago")
+			  << "\n  Empleado:        " << c->getNombreEmpleado()
+			  << " (" << c->getIdEmpleado() << ")"
+			  << (c->getEmpleado() == nullptr ? "  [ya no está en el expediente]" : "")
+			  << "\n  Tipo:            " << c->getTipoEmpleado()
+			  << "\n  Departamento:    "
+			  << (c->getCodigoDepartamento().empty()
+					  ? "Sin asignar"
+					  : c->getCodigoDepartamento() + " - " + c->getNombreDepartamento())
+			  << (!c->getCodigoDepartamento().empty() && c->getDepartamento() == nullptr
+					  ? "  [ya no existe]" : "")
+			  << "\n"
+			  << "\n  Salario base:             " << formatearMonto(d.salarioBase)
+			  << "\n  Horas extra:              " << formatearMonto(d.pagoHorasExtra)
+			  << "\n  Bonificación nocturna:    " << formatearMonto(d.bonificacionNocturna)
+			  << "\n  Bonificación guardias:    " << formatearMonto(d.bonificacionGuardias)
+			  << "\n  Bonificación del puesto:  " << formatearMonto(d.bonificacionPuesto)
+			  << "\n  Salario bruto:            " << formatearMonto(d.salarioBruto)
+			  << "\n  Deducción de ley:         " << formatearMonto(d.deduccionLegal)
+			  << "\n  SALARIO NETO:             " << formatearMonto(d.salarioNeto)
+			  << "\n  ------------------------------------------\n";
+}
+
+void InterfazConsola::verComprobante() {
+	mostrarTitulo("Ver comprobante");
+
+	int numero = EntradaConsola::leerEntero("Número de comprobante: ", 1);
+	const ComprobantePago* comprobante = planilla.buscarComprobante(numero);
+
+	if (comprobante == nullptr) {
+		throw std::invalid_argument(
+			"No existe el comprobante numero " + std::to_string(numero) + ".");
+	}
+
+	mostrarComprobante(comprobante);
+}
+
+void InterfazConsola::procesarPagoIndividual() {
+	mostrarTitulo("Procesar pago");
+
+	int numero = EntradaConsola::leerEntero("Número de comprobante: ", 1);
+	const ComprobantePago* comprobante = planilla.buscarComprobante(numero);
+
+	if (comprobante == nullptr) {
+		throw std::invalid_argument(
+			"No existe el comprobante numero " + std::to_string(numero) + ".");
+	}
+
+	mostrarComprobante(comprobante);
+
+	if (!EntradaConsola::confirmar("\n¿Confirma el pago de este comprobante?")) {
+		std::cout << "  Operación cancelada.\n";
+		return;
+	}
+
+	planilla.procesarPago(numero);
+	std::cout << "\n  Pago procesado correctamente.\n";
+}
+
+void InterfazConsola::procesarPagosDelPeriodo() {
+	mostrarTitulo("Procesar pagos del período");
+
+	std::string periodo = EntradaConsola::leerPeriodo("Período (AAAA-MM): ");
+
+	if (!EntradaConsola::confirmar("¿Confirma el pago de todos los comprobantes pendientes?")) {
+		std::cout << "  Operación cancelada.\n";
+		return;
+	}
+
+	int pagados = planilla.procesarPagosPeriodo(periodo);
+	std::cout << "\n  Comprobantes pagados: " << pagados << "\n";
+}
+
+void InterfazConsola::mostrarResumenPeriodo() {
+	mostrarTitulo("Resumen del período");
+
+	std::string periodo = EntradaConsola::leerPeriodo("Período (AAAA-MM): ");
+	int cantidad = planilla.contarComprobantes(periodo);
+
+	if (cantidad == 0) {
+		std::cout << "  No hay comprobantes en el período " << periodo << ".\n";
+		return;
+	}
+
+	std::cout << "\n  Período:                " << periodo
+			  << "\n  Comprobantes emitidos:  " << cantidad
+			  << "\n  Total salario bruto:    " << formatearMonto(planilla.calcularTotalBruto(periodo))
+			  << "\n  Total deducciones:      " << formatearMonto(planilla.calcularTotalDeducciones(periodo))
+			  << "\n  Total salario neto:     " << formatearMonto(planilla.calcularTotalNeto(periodo))
+			  << "\n";
+}
